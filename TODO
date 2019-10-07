@@ -1,0 +1,20 @@
+o  BREAK UP THE LAYOUT.  For example, make iwar-loginfo.c and move the stupid
+   MySQL/Log functions there.
+o  Postgres support - natas binrev.
+o  Re-write/fix up the damn README...  I don't like it. - Beave
+o  Add support for external sounds. Basically, make execl calls to things
+   like mpg321 to play a file when a carrier is found. - Beave
+o  Daemon mode - that might be nice.  - Beave
+o  Screen redrawing needs to be handled better - Beave
+
+
+
+More "Maybe we'll do this" TODO
+-------------------------------
+o  Ability to read THC-Scan and TONELOC files? (m2mike - binrev)
+o  Add a basic "terminal modem" window so you can call all the
+   carriers detected. (jfalcon - IRC).  (Sorta done,  added a
+   terminal window down at the bottm,  but this isn't exactly
+   what jfalcon meant).
+o  Added a net lookup for numbers (for example,  have iWar hit up things
+   like dslbroker for example,  to reverse lookup - if possible) - Jfalcon

@@ -1,0 +1,170 @@
+# Listing of banners used to help identify systems.  The layout is pretty
+# simple.  First is the string to help us identify the called system. 
+# Seperated by the | is the Description of said system.
+#
+# If you've found a banner that isn't identified here (which is highly 
+# likely!) - Please send me a copy!  Send it to beave@softwink.com so 
+# I can add it to the list!
+
+# Red Hat banners
+
+Red Hat Linux release 9 |Red Hat Linux release 9 (Shrike)
+Red Hat Linux release 8.0|Red Hat Linux release 8.0 (Psyche)
+Red Hat Linux release 7.3|Red Hat Linux release 7.3 (Valhalla)
+Red Hat Linux release 7.2|Red Hat Linux release 7.2 (Enigma)
+Red Hat Linux release 7.1|Red Hat Linux release 7.1 (Seawolf)
+Red Hat Linux release 7.0|Red Hat Linux release 7.0 (Guinness)
+Red Hat Linux release 6.2|Red Hat Linux release 6.2 (Zoot)
+Red Hat Linux release 6.1|Red Hat Linux release 6.1 (Cartman)
+Red Hat Linux release 6.0|Red Hat Linux release 6.0 (Hedwig)
+Red Hat Linux release 5.1|Red Hat Linux release 5.1 (Manhattan)
+Red Hat Enterprise Linux ES release 3|RH Enterprise Linux ES Rel 3 (Taroon)
+Red Hat Linux Advanced Server release 2|RH Linux Advanced Server Rel 2 (Pensacola)
+Red Hat Linux Advanced Server|Red Hat Linux Advanced Server
+Red Hat |Red Hat Linux
+Fedora Core release 1 |Fedora Core release 1 (Yarrow)
+Fedora Core release 2|Fedora Core Release 2
+Fedora Core|Fedora Core
+#
+# CentOS Banners
+#
+CentOS release 3.6|CentOS release 3.6 (Final)
+CentOS |CentOS
+#
+# Various other flavors of Linux....
+#
+Slackware |Slackware Linux
+Welcome to SuSE Linux 9.0|Welcome to SuSE Linux 9.0
+Welcome to SuSE Linux 9.1|Welcome to SuSE Linux 9.1
+SuSE | SuSE Linux
+Vine Linux 3.2|Vine Linux 3.2 (Ducru Beaucaillou)
+Vine Linux 2.6|Vine Linux 2.6 (La Fleur de Bouard)
+Cobalt Linux release 6.0|Cobalt Linux release 6.0 (Shinkansen-Decaf)
+Cobalt Linux release 5.0|Cobalt Linux release 5.0 (Pacifica)
+Cobalt Linux release 4.0|Cobalt Linux release 4.0 (Fargo)
+release 5.0 (Pacifica)|Cobalt Linux release 5.0 (Pacifica)
+Cobalt Linux|Cobalt Linux
+Vine Linux|Vine Linux
+DI Linux release 7.2|DI Linux release 7.2 (Anima)
+DI Linux |DI Linux
+Caldera Open UNIX 8.0.0|Caldera Open UNIX 8.0.0 (Courthwright)
+Caldera OpenLinux 3.1.1|Caldera OpenLinux 3.1.1
+Caldera Open |Caldera Open UNIX
+#
+# FreeBSD systems.
+#
+FreeBSD/i386|FreeBSD/i386
+FreeBSD/alpha|FreeBSD/alpha
+FreeBSD|FreeBSD
+#
+# Non Linux based Systems (SCO,  Xenix, etc).
+#
+HP-UX|HP-UX
+4.3 BSD UNIX|4.3 BSD UNIX
+SVR4 UNIX System|SRV4 Unix System
+UNIX System V Release|SRV4 Unix System
+VxWorks login:|Wind River Systems RTOS (see http://www.windriver.com)
+SCO OpenServer(TM) Release 5|SCO OpenServer Release 5
+SCO OpenServer|SCO OpenServer Release ??
+SCO UnixWare 7.1.3|SCO UnixWare 7.1.3
+SCO UnixWare|SCO UnixWare
+Welcome to UnixWare|SCO UnixWare
+LynxOS|LynxOS RTOS
+SunOS 5.9|SunOS 5.9 (Solaris)
+SunOS 5.8|SunOS 5.8 (Solaris)
+SunOS | SunOS (Unknown)
+AIX Version 4|RS6000 / AIX version 4
+AIX Version 5|RS6000 / AIX version 5
+AIX |RS6000 AIX
+IRIX |Silicon Graphics IRIX
+#
+# Terminal Servers/routers
+#
+Xyplex>|Xyplex Terminal Server
+Username>|Possible Terminal Server (DEC/Xyplex/Siemens)
+Local>|DECServer (Terminal Server)
+@Userid:|Shiva Terminal Server
+ComOS - Livingston PortMaster|Livingston PortMaster
+Livingston PortMaster|Livingston PortMaster
+User Access Verification|Possible Cisco Device
+Siemens MSS1 Version|Siemens Terminal Server
+Lantronix MSS1 Version|Lantronix Terminal Server
+VTAM|IBM VTAM (Virtual Telecommunications Access Method).
+Bay Networks|Bay Networks Gear (Terminal Server?)
+Annex Command Line|Bay Network Annex Terminal Server
+Annex |Bay Networks Annex Terminal Server
+Please press <Enter>|PC Anywhere
+Ascend TNT Terminal Server| Ascend TNT Terminal Server
+Ascend Pipeline Terminal Server| Ascend Pipeline Terminal Server
+Ascend Pipeline| Ascend Pipeline Equipment (Router/Terminal Server)
+Ascend |Ascend equipment of some type
+3Com Total Control HiPer ARC|3Com Total Control HiPer ARC
+3Com SuperStack II|3Com SuperStack II
+3Com SuperStack|3Com SuperStack
+3Com Total Control|3Com Total Control
+Lucent DDM-2000 OC-3 Multiplexer|Lucent DDM-2000 OC-3 Multiplexer
+ascend%|Ascend Router/Terminal Server Command Prompt
+ASG Guard - User Authentication|Lucent Access Security Gateway Guard
+Please Enter User ID ->|Lucent Access Security Gateway Guard
+
+#
+# BBS Software ....
+#
+IMAGE BBS V1.2|IMAGE BBS V1.2 (New Image Software, Inc).
+IMAGE BBS|IMAGE BBS (New Image Software, Inc)
+Welcome to Procomm Plus HOST|Procomm Plus in Host mode.
+#
+# Open VMS Banners.
+#
+ULTRIX V4.2A|DEC Ultrix version 4.2A
+ULTRIX|DEC Ultrix System (Unix)
+Digital UNIX |Digital UNIX
+#
+OpenVMS (TM) Alpha Operating System, Version V7.3-1|OpenVMS (Alpha) Version 7.3-1
+OpenVMS (TM) VAX Operating System, Version V7.3-1|OpenVMS (VAX) Version 7.3.1
+OpenVMS (TM) VAX Operating System, Version V7.2|OpenVMS (VAX) Version 7.2
+OpenVMS (TM) Alpha Operating System, Version V7.2|OpenVMS (Alpha) Version 7.2
+OpenVMS (TM) VAX Operating System, Version V7.1|OpenVMS (VAX) Version 7.2
+OpenVMS (TM) Alpha Operating System, Version V7.1|OpenVMS (Alpha) Version 7.2
+OpenVMS Alpha (TM) Operating System, Version V6.2|OpenVMS (Alpha) Version 6.2
+OpenVMS VAX (TM) Operating System, Version V6.2|OpenVMS (VAX) Version 6.2
+OpenVMS (TM) VAX Operating System, Version V6.1|OpenVMS (VAX) Version 6.1
+OpenVMS (TM) Alpha Operating System, Version V6.1|OpenVMS (Alpha) Version 6.1
+VAX | DEC VAX
+Vax | DEC VAX
+vax | DEC VAX
+OpenVMS | OpenVMS System (Unknown arch. or version)
+VMS | DEC VMS (Unknown arch. or version. [1]) 
+Vms | DEC VMS (unknown arch. or version. [2])
+vms | DEC VMS (unknown arch. or version. [3])
+OpenVMS|OpenVMS (Unknown arch. or version)
+#
+# Telco gear... 
+#
+ROLM Phonemail|Seimens ROLM Phonemail System
+ROLM PhoneMail|Seimens ROLM PhoneMail System
+ROLM Voicemail|Seimens ROLM Voicemail System
+Rolm|Seimens Rolm CBXII (PBX) 
+ROLM CBX|Seimens ROLM CBX
+OVL111|Northern Telecom Meridian (SL1)
+2.4.20-AV14login:|Avaya Firmware Version 2.4.20-AV14
+2.4.20-AV10login:|Avaya Firmware Version 2.4.20-AV10
+?login|Possible Nortel DMS
+5ESS login|5ESS Telco Switch
+Account name:|5ESS Telco Switch
+#
+# HIGHLY unlikely banners,  but what the hell.... 
+#
+TACL>|Tandem/NON-STOP OS - Command prompt. 
+TACL|Tandem/NON-STOP OS. 
+HP3000|HP3000 (Under MPE?). 
+MPE |HP3000 (Under MPE).
+QNX Version|QNX (Quantum Software Systems)
+QNX |QNX (Quantum Software Systems)
+Quantum Software Systems|QNX (Quantum Software Systems)
+HP JetDirect|HP Laser Printer.. With a modem.. Waaaa?!?!?
+#
+# Da Beave's banner test.
+#
+#iwar-test123|Beaves banner test (123)
+#

@@ -1,0 +1,46 @@
+
+	This "iwar-test.agi" is a simple AGI (Asterisk Gateway Interface)
+that allows me to test iWar for bugs.   Rather than test iWar by making
+real calls out on the PSTN,  this AGI simply "acts" like the call is 
+being placed on the PSTN by a set of recordings.  
+
+	With this setup,  you can "tweak" your VoIP/Asterisk setup without
+ever actually making a call :)
+
+        This _requires_ that you have a modem,  a VoIP ATA/PAP2 device
+that connects to a Asterisk server!
+
+        The AGI is very, very simple.  
+
+Installation:
+-------------
+
+1.  Copy all the sound files to the Asterisk sound directory (as root).
+
+# cp *.wav /var/lib/asterisk/sounds/
+
+2.  Copy "iwar-test.agi" to the Asterisk AGI directory.
+
+# cp iwar-test.agi /var/lib//var/lib/asterisk/agi-bin/
+
+3.  Make sure "iwar-test.agi" is executable. 
+
+# chmod 755 /var/lib//var/lib/asterisk/agi-bin/iwar-test.agi
+
+4.  Add the following line into your /etc/extensions.conf dial plan (or
+    something similar).
+
+exten => _919555.,1,agi,iwar-test.agi
+
+5.  Reload Asterisk.
+
+
+What does this do?
+------------------
+
+	When you're modem picks up (on the ATA) and dials anything like
+9195551000,   that AGI will handle the call.   You can now test iWar
+with a range like thus:
+
+# iwar -e 919 -r 5551000-5552000
+

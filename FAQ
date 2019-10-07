@@ -1,0 +1,24 @@
+
+Q.	How come when I put in a range of -r 9045551212-9045551313,  I
+	get "ERROR: Largest random number is 2147483647.  Try using the 
+	predial string"?
+
+A.	RAND_MAX determines the largest random number your system will
+	support.   Rather than trying to put the static NPA (904 in this
+	case),  use something like:
+
+	iwar -e 904 -r 5551212-5551313
+
+	If for some reason you _must_ use "9045551212" (for example), 
+	you can do it sequentially (the -x flag).  
+
+Q.	I wanted to scan for faxes and I have a fax capible modem.
+	Why won't iWar detect them?
+
+A.	Most modems will only do data or fax,  not both.  
+
+Q.	I want to use iWar in IAX2 mode,   how do compile support in for
+	this?  
+
+A.	Read the README.IAX2 file.
+

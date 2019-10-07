@@ -1,0 +1,70 @@
+#!/usr/bin/perl -wT
+#
+# Written by Da Beave (beave@softwink.com)
+#
+# This is a very simple routine to test iWar with Asterisk without having
+# to dial anyone/anything.   This AGI returns a random sound file back
+# to iWar.  
+#
+# Please see the README in the "iwar-asterisk-testing" directory.
+#
+
+
+use strict;
+
+$|=1;
+
+my $result;         
+my $soundnum;        #  Random number.  Use to pick random $soundfile.
+my $soundfile;       #  Random file to play (pick via $soundnum)
+
+my $numberfiles=9;   #  Number of files to pick from
+
+my %AGI; my $tests = 0; my $fail = 0; my $pass = 0;
+
+while(<STDIN>) {
+        chomp;
+        last unless length($_);
+        if (/^agi_(\w+)\:\s+(.*)$/) {
+        $AGI{$1} = $2;
+        }
+}
+
+$soundnum = int(rand $numberfiles)+1;
+
+if ( $soundnum == 1) { $soundfile="1200";                }
+if ( $soundnum == 2) { $soundfile="300";                 }
+if ( $soundnum == 3) { $soundfile="busy";                }
+if ( $soundnum == 4) { $soundfile="dialtone";            }
+if ( $soundnum == 5) { $soundfile="notinservice";        }
+if ( $soundnum == 6) { $soundfile="ringing";             }
+if ( $soundnum == 7) { $soundfile="silence";             }
+if ( $soundnum == 8) { $soundfile="voice";               }
+if ( $soundnum == 9) { $soundfile="ringing-silence";     }
+
+printf STDERR "IWAR-AGI Playing: $soundfile\n";
+
+print "STREAM FILE $soundfile \"\"\n";
+$result = <STDIN>;
+&checkresult($result);
+
+
+sub checkresult {
+        my ($res) = @_;
+        my $retval;
+        $tests++;
+        chomp $res;
+        if ($res =~ /^200/) {
+                $res =~ /result=(-?\d+)/;
+                if (!length($1)) {
+                        print STDERR "FAIL ($res)\n";
+                        $fail++;
+                } else {
+                        print STDERR "PASS ($1)\n";
+                        $pass++;
+                }
+        } else {
+                print STDERR "FAIL (unexpected result '$res')\n";
+                $fail++;
+        }
+}

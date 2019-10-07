@@ -1,0 +1,92 @@
+
+	iWar is the first (to my knowledge) "war dialer" to support VoIP.
+In particular the IAX2 (Intra-Asterisk eXchange) protocol.  IAX2 support
+can be build into iWar using the wonderful "iaxclient" library,  which 
+is available at http://iaxclient.sourceforge.net.  Using IAX2 will allow
+you to "war dial" without any additional equipment (ie - hardware modem).
+
+	At this point in time,  the IAXClient library appears to only
+compile under Linux,  Solaris,  MacOS X and Win32 environments.   It might
+not be difficult to port the library to BSD (Open/Free).
+
+Download instructions:
+----------------------
+
+	First,  you'll need to pull down the IAXClient source code.  
+At this time,  IAXClient source code is only available via CVS.  Lately,
+the Sourceforge CVS servers have been anything but reliable, so I've 
+included several methods to get the source. 
+
+
+1. IAXClient CVS HEAD. 
+
+   This is the cutting edge of development for the IAXClient.   With that, 
+   it may or may not function correctly.  To get the source via CVS, 
+   do the following:
+
+   $ cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/iaxclient login
+
+   When prompted for a password,  hit "enter".   The IAXClient site says
+   to type "anonymous" as the password.  If "enter" doesn't work,  try
+   "anonymous".
+
+   To download the source,  type:
+
+   $ cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/iaxclient \
+     co -P iaxclient
+
+   This should begin downloading the source. 
+
+2. IAXClient via "snapshot".
+
+    There is a older IAXClient "snapshot" available.   iWar appears to be
+    compatible with the current CVS HEAD (as of 01-12-2006),  but this
+    snapshot was used during development due to some stability problems.
+    
+    The snapshot is at:
+
+    http://iaxclient.sourceforge.net/snapshots/iaxclient.tar.gz
+
+    This snapshot requires a small custom patch (which I wrote).  The
+    patch is available with iWar in the (iWar directory)/patches/
+    iax2-stderr-patch). To apply the patch,  do the follow:
+
+    $ tar -zxvf iaxclient.tar.gz   # unpack the archive
+    $ cd iaxclient/lib/libiax2/src
+    $ patch -p0 < (Where iWar source is)/patches/iax2-stderr-patch
+
+3.  Downloading Beave's pre-patched IAXClient.
+
+    I've made available the version I used to develop iWar with.  This is
+    pre-patched and ready to compile.  You can download this from:
+
+    http://www.softwink.com/iwar/download/iaxclient-01-12-2006-beave.tar.gz
+
+    or
+
+    ftp://ftp.vistech.net/pub/iwar/iaxclient/iaxclient-01-12-2006-beave.tar.gz
+
+    Once downloaded,  untar the archive:
+
+    $ tar -zxvf iaxclient-01-12-2006-beave.tar.gz
+
+
+Build Instructions:
+-------------------
+
+    No matter your download method,  build instructions are all the same:
+
+    cd iaxclient/lib
+    make                # or gmake if under BSD
+
+    Now we install the library/headers needed by iWar.   As "root" type:
+
+    # cp libiaxclient.a /usr/lib
+    # cp iaxclient.h /usr/include
+    # ldconfig
+
+    If everything has gone well,  you can now continue to compile iWar
+    as normal!
+
+
+	

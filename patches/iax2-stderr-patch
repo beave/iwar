@@ -1,0 +1,22 @@
+--- iax2-parser.c	2005-01-03 16:03:40.000000000 -0500
++++ iax2-parser.c.new	2006-01-10 16:34:33.000000000 -0500
+@@ -56,7 +56,7 @@
+ 
+ static void internaloutput(const char *str)
+ {
+-	printf(str);
++	fprintf(stderr, str);
+ }
+ 
+ static void internalerror(const char *str)
+--- iax.c	2005-01-03 16:03:40.000000000 -0500
++++ iax.c.new	2006-01-10 16:34:25.000000000 -0500
+@@ -2654,7 +2654,7 @@
+ 				fh->dcallno = htons(IAX_FLAG_RETRANS | frame->dcallno);
+ 				iax_xmit_frame(frame);
+ 				/* Schedule another retransmission */
+-				printf("Scheduling retransmission %d\n", frame->retries);
++				fprintf(stderr,"Scheduling retransmission %d\n", frame->retries);
+ 				iax_sched_add(NULL, frame, NULL, NULL, frame->retrytime);
+ 			}
+ 		} else if (cur->func) {

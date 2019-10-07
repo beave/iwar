@@ -1,0 +1,24 @@
+#
+# Below are numbers that should never be dialed.   This _excludes_ any
+# pre-dial string.   For example,  if you entered -e 123 -r900-999 (pre-dial
+# string of "123" and a scan range of 900 to 999) "911" should _NEVER_ be
+# dialed!
+#
+# The obvious....
+
+911
+411
+
+# White house switch board....
+
+2024561414 
+4561414
+
+#
+# Test number
+#
+
+5551212
+5551213
+
+

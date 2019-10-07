@@ -1,0 +1,529 @@
+iWar [Intelligent Wardialer] Version 0.071
+By Da Beave [Jan. 2006]
+beave@softwink.com
+
+ftp://ftp.vistech.net/pub/iwar
+http://www.softwink.com/iwar
+
+** DISCLAIMER:  iWar is a phone network security auditing tool and should only
+                be used for _legal_ purposes.   If you do not have permission
+		to scan a block of numbers,  then don't use this tool!
+
+
+Introduction:
+-------------
+
+	It'd be my guess that shortly after the first auto dialing "MODEM"
+(MODulation/DEModulation) was invented,   "demon dialing" came about. 
+This would have happened in the pre-"Wargames,  the movie" days.   Yes, 
+"demon dialing",  more modernly known as "wardialing",  has been around 
+longer than "David Lightman's" days of "wardialing" with a acoustic modem
+(I never quite understood that).   Of course,  the term "wardialing" took
+off after the movie "wargames",  which is okay by me,  as "wardialing"
+just sounds so much cooler than "demon dialing". 
+
+	Lately,  the traditional press would have you believe that 
+"wardialing" only took place in the 80's and 90's,  and has just recently 
+made a "come back".   It's been a fairly well know fact in the underground 
+"hacking" community that while organizations will throw money at firewalls, 
+IDS/IPS (Intrusion Detections Systems/Intrusion Prevention Systems), 
+and other Internet based safe guards,   dialup modems largely go unnoticed 
+and unchecked.
+
+	Dialup modems are usually the path to least resistance in regards
+to security.
+
+	So what is "wardialing"?  The concept hasn't changed much since
+and before the movie "Wargames" (1983).  A computer, or set of computers,  
+dialing numbers randomly or sequentially and recording things that 
+might be interesting.     Interesting things range from traditional 
+carrier detection to telco related equipment.
+
+Simple Wardialing:
+------------------
+
+	By "simple",  I'm referring to a computer,  a modem and a good ole
+POTS (Plain Old Telephone Service) line.  This is sort of the "old school"
+way of doing things.    The "old school" method isn't that much different
+than the "new school" method,  they just use different means to get the
+call out on the PSTN (Public Switched Telephone Network). 
+
+	If this is the manner you're going to "wardialing" a block of numbers, 
+it would be wise to contact your local telephone company and let them
+know that you are auditing  _your_ lines (You are using iWar in a 
+_LEGAL_ manner, correct?).  
+
+	Some Telco's don't care if you're legally auditing or not,  they'll
+"flag" your line either way if they notice strange activity.    Once
+"flagged", they typically shut off your POTS line.
+
+	To avoid complications from your local phone company,  there's
+several things you can do. 
+
+	First and foremost,  if the block you're scanning consists over
+100 numbers,   do _not_ attempt to do it all at once.    Take your time,
+and use the random dialing function (the default).   I'd advise doing
+20-50 numbers at a time,  and waiting a few hours.   
+
+	As a pre-string (-e option),  you can also add "*67" to block 
+your Caller ID.  This shouldn't every be confused with ANI.   While the
+remote caller will see "Caller ID Blocked",  the ANI information is still
+out there.  This just prevents the person you called from hitting 
+*69 and yelling at you.  *67 is a free service provided by your
+telephone company.
+	
+	The moral?   Keep it simple.  Keep it "slow and low" (under the
+radar).   This would be the same method a attacker would use on your
+block,  so why not mimic them?  If possible,  don't even use the "simple" 
+or "old school" method.   
+
+Wardialing with VoIP hardware (Cisco ATA/Linksys PAP2):
+------------------------------------------------------
+
+	Wardialing over VoIP (Voice over Internet Protocol) is a better
+way of doing things.    The equipment needed is a modem,  computer,  a
+decent Internet connection and some sort of VoIP hardware (Cisco ATA, 
+Linksys PAP2, etc).   The idea is basically the same,  but rather than
+your phone call taking place over the PSTN,  you're using the a outbound
+VoIP provider.  Unlike the "old school" method,  this adds a extra
+layer between you and the target number being called.   For example, 
+the ANI passed is that of your VoIP provider,   and not directly 
+tied to you.   Another advantage is that many VoIP provider let you
+"spoof" caller ID.   So,  not only will the target not be able to call
+you back,  but you can supply false information.   What I typically
+do is put a known fax number as my Caller ID.  This way,  if the target
+decides to call me back and yell,  he'll get a fax machine.   The logic
+is that the caller will believe it was some sort of fax screwup/miss dial.
+
+	To set your hardware like a ATA to spoof your caller ID,  check
+the manual/configuration of your device.
+
+	A wonderful step is use Asterisk (http://www.asterisk.org) to
+place the call.   The equipment involved then become a modem,  computer, 
+a VoIP device (ATA, PAP2, etc) and a server running Asterisk.   The idea
+is to have your VoIP device place the call through your Asterisk server.   
+Caller ID spoofing can then be setup there.   As well,  you can record the 
+audio for your scan for later review!  Here's a example of my outbound
+dialing context:
+
+exten => _8.,1,Set(CALLERID(name)=FAX)
+exten => _8.,2,SetCIDNum(8505551212|a)
+exten => _8.,3,monitor,wav|${EXTEN:1}
+exten => _8.,4,Dial(IAX2/myusername@MyVOIPprovider/${EXTEN:1})
+exten => _8.,5,Congestion
+
+	Breaking this down,  we set the caller ID name to "FAX".   We
+then set "our phone number" to "850551212".   The "monitor" statement
+tells the Asterisk server to "record" the call.   To keep things simple, 
+we record the call as the phone number dialed (for example,  8505551234.wav).
+Once your scan is complete,  you can go back and review the .wav files
+to see if you missed anything interesting.
+
+	It should be noted that since you're using VoIP to handle your
+scanning,   only use the ulaw/alaw (G.711) codecs!  Codecs like GSM and 
+G729 can cause havoc on your scans!  Even more so when you scanning simply 
+for carriers.   You might have noticed that iWar defaults to a very 
+low speed (1200 bps).   This seems to be a reasonable speed for iWar
+to work and identify carriers.   The down fall is that a few modems
+won't even bother trying to connect at low speeds.  I've found this
+to be fairly rare,  but it does happen.  The low rate also lets
+iWar attempt to identify the remote system.   Higher speeds over
+VoIP tend to not work very well,   and produce a lot of garbage over 
+the connection.   If you're using VoIP,  use lower speeds when scanning.
+If you're using the "old school" method,  feel free to bump up the 
+rate.
+
+	Just because you're using a VoIP provider to scan doesn't make 
+it impossible to track you back.  Someone with enough time and energy
+can have your VoIP provider track you back.   This shouldn't be to much
+of a problem as long as your use your brain a little bit.
+
+
+Wardialing _without_ VoIP Hardware:
+-----------------------------------
+
+	Imagine you're sitting in a place with a wifi hot spot,  and
+you wish to do some scanning.  Or perhaps you don't own any 
+VoIP hardware (Cisco ATA/Linksys, PAP2, Modem, etc.) to do scanning with.
+Using iWar with IAX2 support,  you can scan with nothing more
+than a Internet connection, Intra-Asterisk eXchange (IAX2) VoIP 
+provider (ie - nufone, iaxcc, local Asterisk server) and a set headphone 
+w/ microphone (optional)!
+
+	iWar works the same way as normal war dialing,  but rather than
+using analog modem hardware,  it used the IAX2 VoIP protocol for dialing.  
+iWar will act as a _full blown_ IAX2 VoIP client.   That is,  not only 
+will it dial target numbers and let you listen to the results,  but using 
+your microphone you can "talk" to the remote target (if so desired)!  
+In IAX2 mode,  iWar keys 1-9, * and # send there DTMF equivalents.   
+With the IAX2 add functionality, I've add a additional "Pause" function.   
+If you need to simply get up (ie - to use the bathroom) and want to 
+pause scanning,  simply hit 'p'.  In the event you find something/someone 
+interesting and wish to pause and "MARK" the number,  hit '['.   
+This will not only pause the software, but will log it,  and allow you 
+to talk/play with the called number!
+
+	At this time,  I've only added IAX2 client functionality.   In
+IAX2 dial mode,  it will _not_ detect remote event (for example,  "RINGING", 
+carrier,  fax,  voice).   I'm currently working on the "signal processing"
+code to detect such events. 
+
+	For information about how to build iWar with IAX2,  see the 
+README.IAX2 file. 
+
+
+Tone Location With Modem Hardware (non-IAX2 calls):
+---------------------------------------------------
+
+	iWar uses two methods for "tone detection".  Actually,  one 
+method is true "tone detection",  the other is "silence detection". 
+Unfortunately,  wardialing is tied directly to the hardware (modem)
+you are using.   Considering this is all serial communication,  there
+is no way for your computer to "listen" to the tone and determine if
+its something interesting or not.  That's left up to the modem.   So, 
+if you're using a crapy modem for other than carrier detection,  then
+expect crapy result (See the modem hardware section). 
+
+	iWar uses the traditional "ToneLoc" tone detection.   Again,  
+this only works for a small set of modems.  The idea is rather than 
+send the tradition dial string (ATDT5551212), you send ATDT5551212w;.  
+This tells the modem to dial the number and "wait" for an addition 
+tone.  If a "tone" is "heard" by the modem,  it'll return back to the 
+command prompt (with a "OK").  If the modem receives a "BUSY" or "VOICE",  
+it is ignored.   If it received a "OK",  we know that we got some 
+sort of "tone" on the called number and it is logged.  
+
+	The downfall of this,  depending on your hardware,  is that 
+it requires you to scan a block twice.  One time for carriers,  the 
+second time for tones.    
+
+	It's also not terribly accurate (See the modem hardware section!).
+Some modems will record a voice or ring as a possible tone.  Some modems
+don't even bother really checking and return a "OK" no matter what. 
+
+	The second method is a "silence" search.   The idea is pretty simple.
+If your modem supports remote call progression indication (for example, 
+"RINGING"),   then we watch for remote rings.   In the iwar configuration
+file,  there is a "remote_ring" option.   If we call a number and the
+number doesn't answer after X number of rings,  we hang up (speeds up
+scanning).   If we call a number,   and it rings under the amount
+of remote_rings ,  without receiving a VOICE or BUSY,  we can assume
+something picked up.    If it didn't make a sound or the modem didn't
+detect it,  then it might be something interesting and iWar records it. 
+
+	Normal "tone detection" is disable by default,  as many modems
+don't support it.    Also,   some modems will detect tones,  but won't
+detect carriers.   Other modems can do both.   To enabled tone location
+(ATDT5551212w;) you can pass iWar the -a flag.  
+
+	By default,  "silence detection" is disabled.  If your modem
+supports remote call progression,  set the "remote_ring" to the amount
+of rings you want to wait on.   The good thing about silence detection
+is that it'll allow you to scan for silence and carriers.   You should
+carefully test your modems capabilities.  For example,  the USR Couriers
+will sometimes detect a remote tone as "VOICE" (ATX6 - enable all
+result codes).   If this is the case,  you'll miss a lot of goodies.  
+You might want to add ATX7 (enabled everything except VOICE detection).
+
+	ATX6 with the USR Courier is great for simply scanning for carriers,
+if you're not interested in silence detection.   It'll detect and move 
+on to the next number a lot faster,   but you'll miss "silent answers". 
+
+	The default iWar setting assume you're using a standard old modem.
+That is,  no remote call progression and "ATDT5551212w;" will not work. 
+You'll need to tweak you're configuration to work best for you (via the
+modem init string).
+
+        iWar can also scan for Fax machines as well.   That might not
+sound terrible interesting,   but can lead to some useful information.
+If you have a "fax modem",  simply add the "+FCLASS=1" to your init string.   
+Unfortunately, if you're scanning for fax machines,   you will miss 
+normal carriers.  From my understanding,  some ZyXEL modems will support 
+both fax and carrier detection.   That would be rather nifty,  but 
+considering I've been unsuccessful on getting my hands on one of these
+modems,  I haven't been able to test this.
+
+        If you're scan finds fax machines,  you can in turn use Minicom
+to connect to them (remember,   add "+FCLASS=1" to your terminals init
+string).   What you'll find one connection is that many faxes return the 
+company name that owns them.  This information can be useful.
+
+
+So, I've found stuff.  Now what?
+--------------------------------
+	
+	This is pretty much up to you,  and there's so much crazy stuff
+out there,  it'd be way outside the scope of this README to cover every
+possible scenario.   If the number(s) found seem to have fax machines
+within close range,  that might give you a idea of who owns the device.
+You can also use the "backspoofing" method to determine who own the 
+phone numbers.  The basic idea is to setup your Caller ID to the number
+your interested in and call yourself.   The phone company's database 
+should display who own the number (for more information,  Google
+"backspoof").  There are also many resources on the Internet that will
+assist you in identifying remote numbers you've found. 
+
+Modem Hardware
+--------------
+
+	As stated before,   scanning always depends on the quality of
+the modem.  Cheaper modems support the ATX0-4.   This means they 
+can "blind dial" (don't look for dial tone, just start dialing) to 
+detecting BUSY,  VOICE,  NO CARRIER,  etc.  I've found that some 
+cheaper modems will detect voice as busy.  Many do not support 
+ATDT5551212w; type tone detection.   They simply always give a "OK"
+(return to command prompt) on tone detection regardless how the remote
+end answers.   If you're looking to quality scanning,   investing in
+a decent modem is a good step.   For example,   USR Couriers,  high
+end ZyXEL and Multitech modems work well.  These support extended 
+result codes which you can use to your advantage.   You can usually
+find these modems on Ebay for a pretty good price.
+
+	iWar does support multiple modems.   When using iWar with more
+than one modem,  use the -t flag to specify the modem you want to use.
+iWar will work with as many modems your system can support!
+
+	Before e-mailing that something doesn't work,  please check 
+the capabilities of your modem first.  This can be done by simply
+firing up your favorite terminal software (minicom,  seyon, etc) 
+and doing some test dials.   
+
+
+Features:                                                                       
+---------
+
+-       Full and Normal logging:   Full logging records all possible
+        events during dialing (busy signals,  no answers,  carriers,
+        etc).  Normal it only records things that we might find interesting
+        (carriers,  possible telco equipment).                          
+
+-       ASCII flat file and MySQL logging:  You can log to a traditional
+        ASCII flat file,   and record information into a MySQL database.
+
+-       Dials randomly or sequentially.                                
+
+-       Remote system identifications:   When finding a remote modem and
+        connecting, iWar will remain connected and attempt to identify  
+        the remote system type.   This is based off "banner detection",
+        and is not 100% fool proof!                                    
+
+-       Key stroke marking:   When actively "listening" to iWar working,
+        if you hear something interesting,  you can manually "mark" it  
+        by hitting a key.   You can also enter a "note" about something
+        you find interesting.                                          
+
+-       Multiple modem support,  because...  well,  hey - this is Linux.
+        iWar will support as many modems you can hook up                
+
+-       Nice "curses" based display.  This means that if you're using
+        iWar from a Linux console or a VT100 based terminal,  it should
+        work fine.   It's not a escape sequence kludge,  but true "curses".
+
+-       Full control over the modem:   Unlike other 'kludges',  iWar      
+        doesn't just open the modem as a typical "file".   It controls
+        the baud rate,  parity,  and CTS/RTS (Hardware flow control)  
+        DTR (Data terminal read).   This is important for controlling
+        the modem and making it preform the way you want it to during
+        scanning.  For example,  DTR hang ups                        
+
+-       Blacklisted phone number support:  For numbers the system
+        should _never_ dial.                                     
+
+-       Save state:   If within the middle of a "wardialing" session you
+        want to quit,  you can save the current state to a file.  This  
+        allows you to come back later and restart iWar where you left off.
+
+-	Tone location,  if your modem supports it.   iWar uses two 
+	different methods.   The traditional "ATDT5551212w;" (Toneloc)
+	and "silence" detection. 
+
+-	iWar can be used to attack PBX's and Voice mail systems (see
+	example usage below).
+
+-	You can load a pre-generated file of numbers to dial.   This 
+	functions the exact opposite way "save state files" work.
+	This option will only dial numbers that are in the file.
+
+-	 Terminal window so you can watch modem interactions and carrier 
+	results in real time 
+	
+-	Support the IAX2 (Intra-Asterisk eXchange) "Voice over IP" (VoIP) 
+	protocol. This allows you to scan without the need of additional 
+	hardware! To my knowledge, iWar is the first war dialer with VoIP 
+	functionality.
+
+-	In IAX2 mode, iWar acts as a "full blown" VoIP client. In this mode, 
+	key 0-9, * and # play there DTMF equivalents. In this mode, you can 
+	also directly "talk" (using a microphone) with the remote target if 
+	so desired.
+
+-	In IAX2 mode, if your VoIP provider supports it, you can "set" your 
+	caller ID number (caller ID spoofing).
+
+-	Comes with complete source code and is released under the GNU 
+	General Public License.
+
+Color codes/Screen Attribute codes:
+-----------------------------------
+
+In the event that you're terminal doesnt support color,  we use terminal
+attributes to distinguish between results. 
+
+WHITE   / A_NORMAL	-	NO CARRIER
+YELLOW  / A_BOLD	-	BUSY
+GREEN   / A_BLINK	-	CONNECT
+BLUE    / A_UNDERLINE	-	VOICE
+WHITE   / A_DIM		-	NO ANSWER
+
+MAGENTA / A_NORMAL	-	Already scanned (loaded from file)
+CYAN    / A_REVERSE	-	Blacklisted number.
+RED	/ A_NORMAL      -       Number skipped by user (spacebar).
+
+GREEN   / A_STANDOUT    - 	Manually marked.
+BLUE    / A_STANDOUT    -       Possible interesting number (received
+			        silence);
+CYAN	/ A_UNDERLINE   - 	Paused and Marked (IAX2 mode only)
+
+
+
+Keys used in iWar:
+------------------
+
+a		- 	Abort (Don't save,  just quit)
+b		-	Been disabled/enabled.   If enabled,  iWar will beep
+			when a carrier or tone has been located.
+q		-	Save state to a file and quit.
+<cntrl-c>	- 	Send signal 2 (exit,  no matter what!)
+s		-	Save state, don't quit (keep dialing)
+p		-	Pause (Serial mode: Hangup then pause,  IAX2 mode: 
+                        pause then hangup).
+[		-	Pause and mark as interesting (Serial mode: 
+                        hangup pause/mark,  IAX2 mode: pause/mark, hangup)
+			(Useful for IAX2 mode)
++		-	Add 5 seconds from serial timer.
+-		-	Subtract 5 seconds from serial timer.
+(spacebar)	-	Skip current number.
+
+
+Serial mode only:  Volume is set after the current number is processed.
+
+0		-	Modem volume off
+1		-	Modem volume (low)
+2		-	Modem volume (medium)
+3		-	Modem volume (high)
+
+IAX2 mode only:  
+
+0-9		-	0-9 DTMF
+*		-	* DTMF
+#		-	# DTMF
+
+
+Marking will hangup on the current number dialed (shouldn't be a problem
+as you're marking it anyways)
+
+m		-	Mark (Quick)  [Mark number as interesting, no comments]
+c		-	Mark (CARRIER)
+f		-	Mark (FAX)
+t		-	Mark (TELCO/TONE)
+v		-	Mark (VOICE MAIL SYSTEM)
+x		-	Mark (PBX)
+k		-	Mark [Allows you to enter a custom not about the number]
+
+
+Example usage:
+--------------
+
+	Please look over some example usage before getting started.  This
+will give you a idea how iWar works.   It should be noted that ranges
+like -r 19045551212-19045551313 should be avoided.   Considering the 
+1+NPA (1-904) is will not change,  that should be put within the pre-dial
+string!  For example, "iwar -e 1904 -r 5551212-5551313".
+
+Simple 5551200 to 5551300 range:
+
+# iwar -r 5551200-5551300
+
+5551200-5551300 range,  now sequential,  with a log file other than the 
+iwar.log default:
+
+# iwar -r 5551200-5551300 -x -f 555.log
+
+5551200-5551300 range but predial "850".  Modem is on /dev/ttyS5.  Set 
+speed to 9600 baud.  Set databits to '7'.  Set parity to 'E'ven.
+
+# iwar -e 850 -r 5551200-5551300 -t /dev/ttyS5 -s 9600 -d 7 -p E
+
+5551200-5551300 range,  with a predial of "9w" on /dev/ttyS1.  The predial
+means "dial 9,  then wait for dial tone" (for example,  within a office).
+
+# iwar -e 9w -r 5551200-5551300 -t /dev/ttyS1
+
+Using the "coma" (for modem delays,  default is 2 seconds) dial a target 
+number (Voicemail box..  anything PIN protected).  Set the range for 
+possible PIN's to attempt.   I've added the -x to do is sequentially 
+(which you wouldn't want to do!).
+
+# iwar -e 5551000,,,1234,, -r 0-1000 -x
+
+Another attack scenario involving the pre-dial and post-dial strings.  
+Lets assume there is a PBX that has pin protection to dial out. 
+In this case,  we'll dial the PBX number (using the pre-dial string -
+12125551234w) wait for a dial tone,  then send a random PIN
+(-r 0-9999).   iWar will then wait for a yet another dial tone,  and 
+attempt to call a number that we know will answer with a carrier (the post dial
+-g w19045552345).  The -m will log to a MySQL database,  and the -F will 
+record _all_ events (BUSY, VOICE, whatever).
+
+# iwar -e 12125551234w -r0-9999 -g w19045552345 -m -F
+
+If you save the state of a wardial to a file, you can reload it like this.
+This will load in the dial type (random/sequential),   numbers already 
+dialed,  and the pre-dial number.
+
+# iwar -l mystatefile.dat 
+
+Load phone numbers from a pre-generated file.  This loads a list of 
+numbers that iWar _will_ dial.   Pretty handy feature.
+
+# iwar -L pregeneratednumbers.txt
+
+When iWar connects,   remain connected and try and determine the remote
+operating system type,  but do not record the banner information.   Log
+to MySQL.  Sequential dial.  Full logging (log everything)
+
+# iwar -r 5551212-5551313 -o -m -F
+
+When iWar connects,  don't check or record the banner.
+
+# iwar -r 5551212-5551313 -o -b
+
+When iWar connects,  record the banner,  but don't try and detect what type
+of system it is.
+
+# iwar -r 5551212-5551313 -b
+
+When iWar connect,  don't record the banner,  but do try to detect the remote
+system type.
+
+# iwar -r 5551212-5551313 -o
+
+Here's a simple IAX2 example.  Rather than using traditional analog modem
+hardware,  we're going to make it all software based.   The pre-dial
+will be the 212 NPA,  with a range of 5551212-5551313.  We'll be dialing
+using IAX2.  The -I means to dial using IAX2, but drop IAX2 debug information
+to /dev/null
+
+# iwar -e 212 -r 5551212-5551313 -I
+
+IAX2 example with IAX2 logging turned on.   Similar to the above example, 
+but we can drop the IAX2 debug information to a file (good for debugging 
+IAX2/VoIP issues)
+
+# iwar -e 212 -r 5551212-5551313 -i iwar-iax2.log
+
+IAX2 example,  loading a pre-generated scan list,  log to a MySQL database,
+dump IAX2 information to a debug file and do full logging.
+
+# iwar -e 212 -r 5551212-5551313 -i iwar-iax2.log -L numbers.txt -m -F
+

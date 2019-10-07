@@ -1,0 +1,65 @@
+
+Basic Installation:
+-------------------
+
+	Installing and compiling should be pretty straight forward. 
+At the command prompt,  type:
+
+$ ./configure
+$ make
+
+	"make install" as "root" will install the iWar binary in the 
+/usr/local/bin.   iWar configuration files are stored in the /usr/local/etc.
+If these locations don't suit you,   use the --prefix option to change
+this:  For example:
+
+ $ ./configure --prefix=/some/path
+
+ 	If you are interested in installing iWar with IAX2 support, 
+please see the README.IAX2 for more information! 
+
+ 	If you do _not_ want MySQL support,  run configure like this:
+
+$ ./configure --disable-mysql
+
+	To disable VoIP/IAX2 support, type:
+
+$ ./configure --disable-iax2
+
+	Of course,  you can add those flags together to disable both
+IAX2 and MySQL:
+
+$ ./configure --disable-iax2 --disable-mysql
+
+Installation with MySQL support:
+--------------------------------
+
+	If you want to store war dialing information within a MySQL database,
+make sure libmysqlclient and the mysql headers are installed.    The
+"./configure" checks for this automatically.   Look carefully through 
+the output. 
+
+	Once iWar is built with MySQL support,  you'll need to create
+the database.   There is a database schema with in the iwar/schema 
+directory.   MySQL authentication information is stored in the iwar.conf.
+To create the iWar MySQL database,  do the following:
+
+$ mysqladmin -u root -p create iwar
+
+	Then we create the tables... (from the schema file in the schema 
+directory)
+
+$ mysql -u root -p iwar < mysql-iwar
+
+	After the database and tables are setup,  you'll need to setup a 
+username/password for iWar to use.
+
+$ mysql -u root -p iwar
+  (at the MySQL command prompt)
+
+grant insert,select on iwar.* to iwar@localhost identified 'somepassword' 
+
+	You can substitute "insert,select" with "all" if you want the iWar
+user to have "all" rights.  Once you've setup the MySQL database,  you
+can use the -m flag to log information to it.  
+

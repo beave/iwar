@@ -1,0 +1,268 @@
+[01/16/2006] - 0.071 Release, "Now with 101% more VoIP" - Beave
+ 
+               Fixed problem with MySQL logging.   MySQL logging was broken
+	       with the 0.07 release.
+
+	       Fixed problem with "custom" keystroke marking.  It wasn't 
+	       saving the data.   It also wasn't inserting the data into
+	       the database correctly.
+
+	       Fixed a "hang" problem during IAX2 mode when a MySQL error
+	       happened. 
+
+	       Changed callerid handling a bit.   Do _not_ run if the 
+	       user sets the caller ID to "911".  Also,  if 
+	       iax2_callerid_number is not set,  we set it to 5551212.
+
+	       In "full logging" mode,  iWar didn't log timeouts.  Fixed.
+
+	       Added more user submitted banners!
+
+
+[01/14/2006] - 0.07 Released, "Now with 100% more VoIP!"  - |337Jesus 
+
+               Added support for IAX2.   You can now wardial via the IAX2
+	       protocol!  iWar is a full blown IAX2 client!
+
+	       Added sending DTMF tones when using IAX2 mode. (0-9, *, #)
+
+	       Fixed small bugs with command line arg's (output file)
+
+	       The default is no longer DTR hangups,  but plughangup()
+	       (+++ATH).  This is pretty generic and supported by everything.
+	       If you _can_ use DTR drops,  then use it.  Typically, 
+	       Linux supports DTR drops great,  while BSD's don't (probably
+	       my fault? ).
+
+	       Fixed problem with changing the volume during dialing. 
+	       (iWar would hang up sending a ASCII 13,   but the 
+	       modemqueue wouldn't be processed).
+
+	       Fixed major problem with "saving state".  When scanning, 
+	       then saving,  then loading,  and saving again,   it would
+	       mangle the savestate file.
+
+	       Fixed bug in key stroke marking.  This could cause screwy
+	       hangups,  and was also slowing down keyboard response time!
+	       This was a issue brought to my attention several times.
+               
+	       Included patch (snprint/strncpy) from Kevin Anderson.  I made
+	       some minor changes,  as his patch used OpenBSD strlcpy/
+	       strlcat (changed to strncpy/strncat). 
+
+	       Added "dtrsec" option.   This allows the user to set the
+	       amount of time during a DTR drop (might make hanging up
+	       work better on some modems).
+
+	       Fixed up the plushangup function to work correctly.  If your
+	       modem doesnt support DTR drops,  it should be safe to use
+	       the plushangup. 
+
+	       Fixed multiple FreeBSD issues (probably fixed other BSDs).
+
+	       Made the configure.in a little more robust.   For example,
+	       added --disable-iax2 and --disable-mysql in the 
+	       go ole "./configure" flags. 
+
+	       Fixed strftime() warnings.   These actually lead to seg.
+	       faults on the AMD64.  All fixed!
+
+	       More code cleanup.
+
+[12/01/2005] - 0.06 Released, "Protovision,  I have you now...."
+
+               Made the screen redraw (when resizing the screen) into the
+	       function - drawinfo()
+
+	       Added more banners!  Thanks to m2mike on binrev.com.
+	       If you've got a banner, send it my way!
+
+	       Added "dtrinit" option.  Some modems (USR Couiers) treat DTR
+	       hangups like sending a "ATZ".  You can probably disable
+	       this in the modem firmware.   With this enabled,  after
+	       a hangup/skip/comment/connect,  after DTR drops the
+	       modem will be re-initialized. 
+
+	       Added a new terminal window at the bottom of the screen.
+	       This allows you to watch iWar as it works.  If it connects
+	       to a remote system,  the data will be displayed there. 
+	       (Ends up being a nice feature to help debug problems
+	       to!).
+
+	       Fixed issue with "Screen full,  Clearing...." (Didn't
+	       clear the entire screen all the time).
+
+	       Fixed major problem with "Toneloc" style tone location.  
+	       Modem init's and such would cause for a false positive
+	       "FOUND TONE!".   It's now set to ignore init string's.
+	       Also,  modem did not hang up after tone detection.  This
+	       is now done during tone scanning (Toneloc style) by 
+	       sending a ATH0.   Since this is the case,  you can't
+	       have "dtrinit" and "tone_detection" enabled in the 
+	       iwar.conf.  When iWar starts,  it automatically detects
+	       if both are set,  and adjusts.   dtrinit isn't needed
+	       during tone location as we are sending a ATH0 and not
+	       dropping DTR. 
+
+	       Modified the INIT string to support S06 and S07. 
+	       This has worked all along,  just DTR on USR's screws
+	       it up (hence the dtrinit option in the iwar.conf).
+
+	       Added "TONE" detection.  I have never seen a modem that
+	       responds this way, but I've been told they exist.  Might
+	       as well support it.  (If you know what type of modem supports
+	       this,  please let me know.  I've been told older USR
+	       Couriers do this).
+
+	       Fixed a minor issue with seq/random scanning in that it would
+	       always miss the last number.  Easy fix.
+
+	       Fixed a major issue where Seq. scanning and loading
+	       from a state file would result in incomplete scan.  It
+	       didnt verify that the number had already been dialed in the
+	       past correctly.
+
+	       Fixed a similar, but seperate issue with random scanning
+	       and loading states.  When scanning random,  would result
+	       in incomplete scans,  and would also dial the same numbers
+	       multiple times.  
+
+	       Fixed problem when saving state that cause the previous
+	       filename to be concatenated to current ( pointed out by
+	       dominatus on binrev.com)
+
+	       Fixed small problem with screen clearing. 
+
+	       Marking numbers took a bit of time.   At the request of
+	       dominatus,  I speed this up a bit. 
+
+	       Added a "ring_timeout" option.  Rather than wait for serial
+	       timeout (which might cause you to miss something),  you 
+	       can set a timeout between rings.   For example,  if you
+	       get two rings,  and not another ring for X number of seconds
+	       then something answered,  but modem never returned a result
+	       code.
+
+	       Made it easy to get out of "Save state" prompts.   So, 
+	       if you hit "s" or "q" by mistake,  you can just hit enter
+	       and resume scanning.
+
+	       Added a simple but nifty AGI (Asterisk) tool and recording
+	       for testing iWar without actually making a call.  Look in
+	       the "iwar-asterisk-testing".  Read the README.
+
+[11/18/2005] - 0.05 Released, "Phone Sex Goddess Jane Barbe (RIP)".
+
+               Change #include <time.h> to <sys/time.h>. 
+
+               Fixed goof up in configuration file.  I had at the top (port
+	       settings) "port=/dev/ttyS0", which won't work!  It should
+	       be "port /dev/ttyS0".
+
+	       Slight issue with the banners.txt.  Stray \n.
+
+               Fixed strtok() problems that where causing seg. faults
+               under Cygwin.   This also fixes MacOS X builds (thanks
+	       nyquist for the build help!).
+
+               Some cosmetic code cleanup.  (stupid strcmp statements).
+	       
+	       Seperated the -b (banner detection disabled) and the -o
+               (disabled banner recording).  This way,  you can do just a
+               -b to disabled banner detection,  but leave recording enabled.
+               or -o -b which will not record the banner,  and not attempt
+               to detect the banner type (hang up after connection).
+
+	       Built a static linked Windows CYGWIN version of iwar which
+               is _NOT_ included in this archive.   For the *nix disabled.
+
+[11/16/2005] - 0.04 Released, "Drop the modem and nobody gets hurt!" (Skram, 
+               on IRC). 
+
+	       Cosmetic fix.  Banner detection enabled displayed
+               "CONNECT",  disabled banner detection displayed "CONNECTED".
+
+	       Added recording of the remote banner when a carrier is 
+	       found (-o,  enabled by default).   iWar will record any
+               information received from the remote system.   If -o
+               is set,  it'll attempt to identify the remote system, 
+               but will not record it.  -b (disable banner detection)
+               will disable remote logging and banner detection (just
+               records the "CONNECT".. nothing more.
+
+	       Added a bit of a exit screen.
+
+               Since -o was added,  had to change the MySQL schema.  Now
+               has a TEXT field for remote system response storage. 
+
+               Change some of the defaults in iwar.conf. 
+
+	       Added a few more examples in the README file. 
+
+	       Minor changes to configure.in to grab system type.  
+
+	       Fixed small problem compiling without MySQL support. 
+
+[11/14/2005] - 0.03 Release.  "Natas's Complete Life - Part 2!"
+
+	       When loading pre-generated number,  the software sort goofed
+	       up the display and log file output.  This has been fixed.
+
+	       Fixed some other small dialer bug/problems (NO CARRIER's
+	       still screwing up things).  Should be resolved now. (I hope).
+
+	       Fixed problem with remote_ring and serial timeout.  Seems
+	       that if remote_ring was set to "0",  you'd get a "max.
+	       ring count received" upon hangup.   Serial timeout's would
+	       cause a NO CARRIER.   To fix both,  I no longer send
+	       \r\r,  but drop DTR,  clear the buffer and call nplot
+	       (rather than rely on the NO CARRIER part).
+
+	       Fixed problem with "remote_ring".   "remote_ring" should
+	       tell the system to hang up.
+
+	       Fixed a problem with modem volume change/skip number
+	       combo.   That is,  if you told iWar to change the volume
+	       on the next pass,  then skipped the number (via spacebar), 
+	       It would get caught in a loop of "NO CARRIER"'s.  
+	
+	       Made the iwar.conf init string a bit more generic.  Seems
+	       that ATS7=255 screws up some modems. 
+
+	       There was a problem when loading a pre-saved state file that
+	       the counts/display would get outta wack.  The "count"
+	       (numbers left to dial) wouldn't be correct with the actual
+	       numbers left to dial.   This is fixed.  It shows total
+	       numbers now (start - end) then "skips" (and subtracts)
+	       when it encounters a already dialed number.
+
+	       Problem when saving the current state of a dial.  I had 
+               intended to 'append' to the state file,  but then decided
+               to over write it.   I never took out the "check if we've
+               loaded from a state file - if so,  just append the new
+               dialed numbers" crap.   That's been removed.  Save state
+               now works much better. 
+
+[11/13/2005] - 0.02 Released.  "Natas's Complete Life!"
+
+               Made spacebar skip number (Request from m2mike on
+               the binrev.com forums).  Move "Mark" (that was spacebar)
+               to the letter 'm'.  Made note of this in README (Keys).
+
+               Sometimes "NO CARRIER's" would cause the iWar to "skip" a
+               number.   Fixed this issue.  (Noticed by Da Beave)
+
+               Changed the "blacklist" structure array.  T'was semi-silly.
+               (Noticed By Da Beave)
+
+               Added a '-L' option at the request of Natas.  This allows you
+               to create a pre-generated list of numbers to dial/check.
+               For example,  you could write a perl routine to generate
+               a list of numbers that hit every area code and dial
+               "8675309".   I'm sure other people have better ideas for
+               this function :)
+
+               ("That would be AWESOME! It would make my life complete!").
+
+[11/13/2005] - 0.01 Released.  "Da Spawn".
+

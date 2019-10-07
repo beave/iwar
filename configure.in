@@ -1,0 +1,93 @@
+#                                               -*- Autoconf -*-
+# Process this file with autoconf to produce a configure script.
+
+AC_INIT
+AC_CANONICAL_SYSTEM
+
+
+VERSION=`cat $srcdir/version.h | grep "#define VERSION " | sed -e 's/^.*\"\(.*\)\"/\1/'`
+
+AC_ARG_ENABLE(iax2,
+  [  --disable-iax2          Disabled VoIP/IAX2 support.],
+  [ IAX2="$enableval"], 
+  [ IAX2="yes" ]
+)
+
+AC_ARG_ENABLE(mysql,
+  [  --disable-mysql         Disable MySQL support.],
+  [ MYSQL="$enableval"],
+  [ MYSQL="yes" ]
+)
+
+AC_SUBST(VERSION)
+AM_INIT_AUTOMAKE(iwar, ${VERSION})
+AC_CONFIG_HEADER(config.h)
+AC_CONFIG_SRCDIR([sysdep1.c])
+
+# Checks for programs.
+AC_PROG_CC
+AC_PROG_INSTALL
+AC_LANG_C
+AC_PROG_MAKE_SET
+
+# Checks for header files.
+AC_HEADER_STDC
+AC_HEADER_SYS_WAIT
+AC_CHECK_HEADERS([fcntl.h limits.h sgtty.h stdlib.h string.h sys/ioctl.h termios.h unistd.h])
+
+
+
+# Checks for libraries.
+
+AC_CHECK_LIB(curses, main,,AC_MSG_ERROR(iWar requires curses/ncurses!
+Please see http://www.gnu.org/software/ncurses/ncurses.html))
+
+AC_CHECK_LIB(form, main,,AC_MSG_ERROR(iWar requires ncurses forms! 
+Please see http://www.gnu.org/software/ncurses/ncurses.html))
+
+if test "$MYSQL" = "yes"; then
+ 	AC_MSG_RESULT([------- MySQL Logging Is Enabled ------])
+	AC_CHECK_HEADER([mysql/mysql.h])
+	AC_CHECK_LIB(mysqlclient, main,,AC_MSG_ERROR(The MySQL library cannot be found. 
+If you're not interested in MySQL support use the --disable-mysql flag.))
+        fi
+
+# For iaxclient to work,  you have to have libiaxclient and pthread support!
+
+if test "$IAX2" = "yes"; then
+	AC_MSG_RESULT([------- IAX2/VoIP Is Enabled -------])
+	AC_CHECK_HEADER([iaxclient.h])
+	AC_CHECK_LIB(iaxclient, main,,AC_MSG_ERROR(iWar needs IAXClient for VoIP/IAX2 support.  
+For more information check out the README.IAX2 and http://iaxclient.sf.net
+If you're not interested in VoIP/IAX2 support use the --disable-iax2 flag.))
+
+        AC_CHECK_LIB(m, main,,AC_MSG_ERROR(iWar needs libm / math library for VoIP/IAX2 support.
+If you're not interested in VoIP/IAX2 support use the --disable-iax2 flag.))
+
+	AC_CHECK_LIB(pthread, main,,AC_MSG_ERROR(iWar need pthreads for VoIP/IAX2 support.
+If you're not interested in VoIP/IAX2 support use the --disable-iax2 flag.))
+
+fi
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_HEADER_TIME
+
+# Checks for library functions.
+AC_PROG_GCC_TRADITIONAL
+AC_FUNC_MALLOC
+AC_FUNC_SELECT_ARGTYPES
+AC_TYPE_SIGNAL
+AC_FUNC_STRFTIME
+AC_CHECK_FUNCS([select strstr])
+
+test "x$prefix" = x. || test "x$prefix" = xNONE && prefix=/usr/local
+AC_DEFINE_UNQUOTED(CONFIG_FILE_PATH, "`eval echo "${prefix}/etc/iwar.conf"`") 
+AC_DEFINE_UNQUOTED(BANNER_FILE_PATH, "`eval echo "${prefix}/etc/banners.txt"`")
+AC_DEFINE_UNQUOTED(BLACKLIST_FILE_PATH, "`eval echo "${prefix}/etc/iwar-blacklist.txt"`") 
+
+AC_DEFINE([CONFIG_FILE_PATH], [], [iWar configuration file])
+AC_DEFINE([BANNER_FILE_PATH], [], [iWar banner file])
+AC_DEFINE([BLACKLIST_FILE_PATH], [], [iWar blacklistfule])
+
+AC_OUTPUT(Makefile)

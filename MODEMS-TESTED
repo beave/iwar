@@ -1,0 +1,47 @@
+This is a listing of modems tested.   If you've used iWar with modems other
+than on of these, please let Da Beave know! (beave@softwink.com).
+
+
+o	Hayes Optima 336 (V.34/V.FC+FAX+VOICE).   Lacks decent tone 
+	detections (ATDT5551212w;  confuses remote ringing with 
+	a tone).   Basic dialing works fine.  Speaker volume is loud.
+	No remote call progression.   No tone detection possible.
+	Support class 1 faxing.
+
+o	Practical Peripherals 336 Minitower.  Lacks detent tone detection.
+	Basic dialing works fine.  Speaker volume is really low,  even
+	at the highest setting.   Detects voice as BUSY most of the
+	time.   Doesnt support remote call progression (RINGING).
+	No tone detection is possible (silence/tone).  Supports calls
+	1 faxing.
+
+o	Microcom DeskPorte 28.8S.  Lacks tone detection.  DTR drops are
+	_SLOW_ on this modem.   This makes manually "marking" slower.   
+	Other than that,  seems to work fine for basic dialing.  Can't say
+	if the volume is loud,  as my unit appears to have a broken
+	speaker.  Doesn't support call progression. No tone detection 
+	possible.   No fax option with this modem.  
+
+o	Motorola 28.8.  Lacks tone detection.  Considers remote rings
+	as a tone (ATDT5551212w;).   It is good at not considering 
+	voice as a BUSY.   Does detect BUSY accurately.  Supports
+	class 1 fax.  Volume is loud.  No fax support for this modem.
+	No tone detection possible.
+
+o	Comtrol RocketPort 8 port PCI modem.  33.6.  Lacks extended 
+	tone detections (ATX5/6),  but it appears that silence detection
+	might work (ATDT5551212w;).  Doesn't seem to confused BUSY with
+	VOICE.  Can't comment on the volume as this unit is 200 miles
+	away from me.   Support Class 1 fax.  Might support traditional
+	tone location,   but doesn't support silence detection.
+
+o	USR 56k Courier V.Everything.  Supports call progression (RINGING).
+	(ATX6 == everything on/ATX7 == everything minus VOICE detection).
+	My modem doesn't seem to support ATDT5551212W; type tone detection,
+	but does support silence detection.    From my understanding,  older
+	USR Courier might support both. Support class 1 fax.  Good modem 
+	for scanning.   This modem by default treats DTR drops like
+	"ATZ",  so you need to re-send the modem init string (see the
+	iwar.conf and enabled "dtrinit").
+ 
+
