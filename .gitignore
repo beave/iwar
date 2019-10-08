@@ -1,0 +1,24 @@
+
+# after configure
+.deps
+.libs
+Makefile
+Makefile.in
+aclocal.m4
+autom4te.cache/
+compile
+config.guess
+config.h
+config.h.in~
+config.log
+config.status
+config.sub
+configure
+depcomp
+install-sh
+missing
+
+# after make
+*.o
+src/iwar
+
