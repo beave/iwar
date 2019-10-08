@@ -277,7 +277,6 @@ AM_CFLAGS = -D_POSIX
 iwar_CPPFLAGS = -I$(top_srcdir) $(LIBFASTJSON_CFLAGS) $(LIBESTR_CFLAGS)
 iwar_LDADD = $(LIBFASTJSON_LIBS) $(LIBLOGNORM_LIBS) $(LIBESTR_LIBS)
 iwar_SOURCES = iwar-engine.c \
-							      iwar-iax2 \
 							      iwar-ncurses.c \
 							      sysdep1.c
 

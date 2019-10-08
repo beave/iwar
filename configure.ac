@@ -7,7 +7,7 @@ AC_INIT([iwar], m4_esyscmd_s([cat src/version.h | cut -d\" -f2]))
 AC_CONFIG_SRCDIR([src])
 AC_CANONICAL_SYSTEM
 AC_GNU_SOURCE
-AC_CONFIG_MACRO_DIR([m4])
+#AC_CONFIG_MACRO_DIR([m4])
 AM_MAINTAINER_MODE([disable])
 
 # Check OS
