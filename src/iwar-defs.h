@@ -1,4 +1,5 @@
 
+
 #define MAXPATH 255
 
 #define BANNER_FILE_PATH "/usr/local/etc/iwar-banners.txt"

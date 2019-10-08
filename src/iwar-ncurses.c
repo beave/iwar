@@ -29,20 +29,10 @@
 #include <stdlib.h>
 #include "iserial.h"
 
-void nstatus( const char * );
-void ntimer( int timer );
-void ncount( int ncount);
-void nintro( void );
-void npause( int );
-void ninfo(const char *, int );  /* 1 = ERROR , 2 = WARN */
-void mainscreen( void );
-int  nplot(long long, int, int );
-void nright(int, int);
+#include "iwar-defs.h"
+#include "iwar.h"
 
-char *nsimpleform();
-char *nfilename();
-
-void mainscreen( void )
+void NCURSES_Mainscreen( void )
 {
     int b;
     int c;
@@ -178,39 +168,38 @@ void mainscreen( void )
 
 /* "Status:" part of the screen */
 
-void nstatus(const char *nstring)
+void NCURSES_Status( char *status )
 {
     init_pair(1, COLOR_WHITE, COLOR_BLUE);
     attron(COLOR_PAIR(1));
     move(5,20);
     printw("                                 ");
     move(5,20);
-    printw("%s", nstring);
+    printw("%s", status);
     attroff(COLOR_PAIR(1));
     refresh();
 }
 
 /* Shows serial timer in seconds */
 
-void ntimer(int ntimer)
+void NCURSES_Timer(int timer)
 {
     init_pair(1, COLOR_WHITE, COLOR_BLUE);
     attron(COLOR_PAIR(1));
     move(6,20);
     printw("         ");
     move(6,20);
-    printw("%d", ntimer);
+    printw("%d", timer);
     refresh();
 }
 
 /* Plot number on the screen.  Color is preset before getting here */
 
-int nplot(long long dialnum, int row,  int col)
+void NCURSES_Plot(long long dialnum, int row,  int col)
 {
     move(row,col);
     printw("%lld", dialnum);
     refresh();
-    return 0;
 }
 
 /* Some basic statistics */
@@ -332,21 +321,18 @@ void npause(int ntype)
     refresh();
 }
 
-/* Dialog box to get filename to save information */
-
-char *nfilename()
+void NCURSES_Filename(char *str, size_t size)
 {
     FIELD *field[2];
     FORM  *form;
     WINDOW *form_win;
 
-    char buf[255]="";
+    char buf[255] = { 0 };
 
     int key, row, col, maxrow, maxcol;
     int i, b;
 
-    char tmp[255]="";
-    char *bufpoint;
+    char tmp[255] = { 0 };
 
     getmaxyx(stdscr, maxrow, maxcol);
     field[0] = new_field(1,53,0,0,0,0);
@@ -422,8 +408,7 @@ char *nfilename()
     touchwin(stdscr);
     refresh();
 
-    bufpoint=buf;
-    return bufpoint;
+    snprintf(str, size, "%s", buf);
 
 }
 
@@ -522,7 +507,7 @@ char *nsimpleform()
 /* Hello.. My name is Da Beave.  I wrote this program,  and I'd like to
    welcome you to it.   That's what this part does :) */
 
-void nintro()
+void NCURSES_Intro()
 {
     WINDOW *info;
 
@@ -530,7 +515,7 @@ void nintro()
     int b;
     int maxrow;
     int maxcol;
-    char msg[50];
+    char msg[50] = { 0 };
 
     getmaxyx(stdscr,maxrow,maxcol);
     info = newwin(15,50, (maxrow - 7) / 2, (maxcol - 50) / 2);
