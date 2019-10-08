@@ -9,6 +9,8 @@ AM_CFLAGS = -D_POSIX
 
                                                iwar_SOURCES = iwar-engine.c \
 							      iwar-ncurses.c \
+							      util-strlcpy.c \
+							      util-strlcat.c \
 							      sysdep1.c
 
 

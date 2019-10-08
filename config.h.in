@@ -3,7 +3,7 @@
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
 
-/* Sagan configuration file */
+/* iWar configuration file */
 #undef CONFIG_FILE_PATH
 
 /* Define to 1 if you have the `access' function. */

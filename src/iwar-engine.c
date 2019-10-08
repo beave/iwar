@@ -33,18 +33,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <curses.h>
-
-#include "iwar-defs.h"
-
-#ifdef HAVE_LIBMYSQLCLIENT
-#include <mysql/mysql.h>
-static MYSQL 	mysql;
-#endif
-
 #include <sys/types.h>
 #include <limits.h>
 
-#define MAXPATH 255
+#include "iwar-defs.h"
 
 /**************************************************/
 /* Funcitons for ncurses (from iwar-ncurses.c)    */
@@ -91,14 +83,14 @@ FILE *iwarcfg;          /* iwar configuration file */
 FILE *saveloadstate;    /* load/save state file */
 FILE *userloadfile;
 
-char sendstring[128]="";
-char modemqueue[128]="";
+char sendstring[128] = { 0 };
+char modemqueue[128] = { 0 }; 
 char fileout[MAXPATH]="iwar.log";
 
-char tmp[128];
-char tmp2[128];
-char *tmp3;
-char *tmp4;
+char tmp[128] = { 0 };
+char tmp2[128] = { 0 };
+char *tmp3 = NULL;
+char *tmp4 = NULL;
 
 long long dialnum;
 long long ss;
@@ -122,14 +114,6 @@ long long blacklistnum[1000];
 
 int userlistcount;
 long long userlistnum[9999];
-
-/* MySQL authenication information */
-
-char mysqlusername[32];
-char mysqlpassword[32];
-char mysqlhost[32];
-char mysqldatabase[32];
-
 
 /***************************************************************************/
 /*                         General Help/Usage                              */
@@ -156,11 +140,6 @@ void usage(void)
     printf("\t -o  :  Disable recording banner data \n\t\t[Serial default: enabled].\n");
     printf("\t -L  :  Load numbers to dial from file.\n");
     printf("\t -l  :  Load 'saved state' file (previously dialed numbers)\n");
-
-
-#ifdef HAVE_LIBMYSQLCLIENT
-    printf("\t -m  :  Log to MySQL database [Optional]\n");
-#endif
 
     printf("\n");
 
@@ -239,6 +218,7 @@ void sendmodem(const char *sendstring)
        13 _first_ then send whatever is in the modemqueue.  */
 
     len=sendstring[0];
+
     if (len == 13 )
         {
             write(portfd, "\r", 1);
@@ -258,7 +238,6 @@ void sendmodem(const char *sendstring)
        instructed to do .... */
 
     if (len != 13)  write(portfd, sendstring, strlen(sendstring));
-//        }
 
 }
 
@@ -571,10 +550,7 @@ void loginfo(int mysqllog, const char *response, const char *ident, const char *
 
     int   length;
     char *notsafe;		/* Pre-processed string from user */
-    char *encoded;          /* escape encoded for MySQL       */
-    char *encoded2; 	/* For logging remote system input */
     char sqltmp[1024];
-    char *sql;		/* Full query with encoded data   */
 
     time_t t;
     struct tm *now;
@@ -617,84 +593,6 @@ void loginfo(int mysqllog, const char *response, const char *ident, const char *
 
                 }
         }
-
-    /* If MySQL logging is enabled..... */
-
-#ifdef HAVE_LIBMYSQLCLIENT
-
-    if ( mysqllog == 1)
-        {
-            if(mysql_init(&mysql) == NULL)
-                {
-                    fprintf(outfd, "%s ERROR: %s\n", tmp2, mysql_error(&mysql));
-                    ninfo("Can't init. MySQL",1);
-                    fclose(outfd);
-                    m_restorestate(portfd);  /* Restore port */
-                    close(portfd);
-                    endwin();
-                    exit(1);
-                }
-
-            mysql_options(&mysql,MYSQL_READ_DEFAULT_GROUP,"iwar");
-
-            /* Connect to DB */
-
-            if (!mysql_real_connect(&mysql, mysqlhost, mysqlusername, mysqlpassword, mysqldatabase,0,NULL,0))
-                {
-                    fprintf(outfd, "%s ERROR: %s\n", tmp2, mysql_error(&mysql));
-                    ninfo("Can't connect to the MySQL server",1);
-                    fclose(outfd);
-                    m_restorestate(portfd);
-                    close(portfd);
-                    endwin();
-                    exit(1);
-                }
-
-            if (mysql_select_db(&mysql, "iwar"))
-                {
-                    fprintf(outfd, "%s ERROR: %s\n", tmp2,  mysql_error(&mysql));
-                    ninfo("Can't select the database", 1);
-                    fclose(outfd);
-                    m_restorestate(portfd);
-                    close(portfd);
-                    endwin();
-                    exit(1);
-                }
-
-            /* I should probably use mysql_real_escape_string() here.
-               It's all flat ASCII,  so it really shouldn't make much of
-               a difference. */
-
-            notsafe=(char *) response;
-            length=strlen(notsafe);
-            encoded = (char *) malloc(length*2+1);
-            mysql_escape_string(encoded,notsafe,length);
-
-            /* Escape any input from the remote system */
-
-            notsafe=(char *) recordbuf;
-            length=strlen(notsafe);
-            encoded2 = (char *) malloc(length*2+1);  /* reserve plenty 'o room */
-            sql = (char *) malloc(length*3+100);
-            mysql_escape_string(encoded2,notsafe,length);
-
-            snprintf(sqltmp, sizeof(sqltmp), "INSERT INTO iwar values( now(), '%lld', '%s', '%s', '%s' )", dialnum, encoded, ident, encoded2);
-            sql=sqltmp;
-            if(mysql_real_query(&mysql, sql, strlen(sql)))
-                {
-                    fprintf(outfd, "%s ERROR: %s\n", tmp2, mysql_error(&mysql));
-                    ninfo("MySQL insert error!", 1);
-                    fprintf(outfd, "-> sql <-", sql);
-
-                    fclose(outfd);
-                    m_restorestate(portfd);
-                    close(portfd);
-                    endwin();
-                    exit(1);
-                }
-        }
-
-#endif
 
     fflush(outfd);		/* flush! so if you're tail -f the log file! */
     fclose(outfd);
@@ -884,7 +782,7 @@ int main(int argc,  char **argv)
     int sendcr=0;
     int record=1;		     /* Record remove system banners */
     int dtrsec=0;
-    char recordbuf[10240]="";    /* Record buffer */
+    char recordbuf[10240] = { 0 };    /* Record buffer */
 
     int key;                     /* move tom main */
     int bitcount=0;
@@ -892,7 +790,7 @@ int main(int argc,  char **argv)
     int c;	                     /* c for getopt */
     char ch;
 
-    char numbersfile[MAXPATH]="";
+    char numbersfile[MAXPATH] = { 0 };
 
     int connect=0;
     int nocarrier=0;
@@ -911,13 +809,13 @@ int main(int argc,  char **argv)
     /* Setup some default port settings */
 
     char tty[20]		= "/dev/ttyS0";
-    char baudrate[7]	= "1200";
+    char baudrate[7]		= "1200";
     char parity[2]		= "N";
     char bits[2]		= "8";
-    char predial[41]="";
-    char postdial[41]="";
+    char predial[41] = { 0 };
+    char postdial[41] = { 0 };
 
-    char modeminit[200]="";
+    char modeminit[200] = { 0 };
 
     int dialtype=0;		/*  1 == sequential */
     int buflen;
@@ -936,9 +834,9 @@ int main(int argc,  char **argv)
     char bannerfile[MAXPATH]=BANNER_FILE_PATH;
     char iwarconf[MAXPATH]=CONFIG_FILE_PATH;
     char blacklistfile[MAXPATH]=BLACKLIST_FILE_PATH;
-    char statefile[MAXPATH]="";
-    char tmpscanbuf[128]="";
-    char scanbuf[128]="";
+    char statefile[MAXPATH] = { 0 };
+    char tmpscanbuf[128] = { 0 };
+    char scanbuf[128] = { 0 };
 
     int logtype=0;
     int ring=0;
@@ -946,8 +844,8 @@ int main(int argc,  char **argv)
     int bannercheck=1;
     int beepflag=0;
     int mysqllog=0;
-    char bannerbuf[1024];
-    char iwarbuf[1024];
+    char bannerbuf[1024] = { 0 };
+    char iwarbuf[1024] = { 0 };
     int connectflag=0;
 
     int hwhandshake=1;
@@ -1097,30 +995,6 @@ int main(int argc,  char **argv)
                 {
                     strncpy(tmp, iwar_value, sizeof(tmp));
                     plushangupsleep=atoi(tmp);
-                }
-
-            if (!strcmp(iwar_option, "mysql_username"))
-                {
-                    strncpy(mysqlusername, iwar_value, strlen(iwar_value)-1);
-                    mysqlusername[sizeof(mysqlusername)-1] = '\0';
-                }
-
-            if (!strcmp(iwar_option, "mysql_password"))
-                {
-                    strncpy(mysqlpassword, iwar_value, strlen(iwar_value)-1);
-                    mysqlpassword[sizeof(mysqlpassword)-1] = '\0';
-                }
-
-            if (!strcmp(iwar_option, "mysql_host"))
-                {
-                    strncpy(mysqlhost, iwar_value, strlen(iwar_value)-1);
-                    mysqlhost[sizeof(mysqlhost)-1] = '\0';
-                }
-
-            if (!strcmp(iwar_option, "mysql_database"))
-                {
-                    strncpy(mysqldatabase, iwar_value, strlen(iwar_value)-1);
-                    mysqldatabase[sizeof(mysqldatabase)-1] = '\0';
                 }
         }
 
@@ -1286,13 +1160,6 @@ int main(int argc,  char **argv)
                     record=0;
                     break;
                 case 'm':
-#ifdef HAVE_LIBMYSQLCLIENT
-                    mysqllog=1;
-                    break;
-#else
-                    fprintf(stderr, "WARNING: MySQL was not compiled into iWar! This option is disabled.\n");
-                    break;
-#endif
                 default:
                     usage();
                     exit(0);
