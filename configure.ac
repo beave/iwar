@@ -153,12 +153,12 @@ if test "$LIBYAML" = "no"; then
 fi
 
 test "x$prefix" = x. || test "x$prefix" = xNONE && prefix=/usr/local
-AC_DEFINE_UNQUOTED(CONFIG_FILE_PATH, "`eval echo "${sysconfdir}/sagan.yaml"`", [Sagan configuration file]) 
+AC_DEFINE_UNQUOTED(CONFIG_FILE_PATH, "`eval echo "${sysconfdir}/iwar.conf"`", [iWar configuration file]) 
 
-AC_DEFINE_UNQUOTED(PACKAGE_NAME, "sagan" )
-AC_DEFINE_UNQUOTED(PACKAGE_STRING, "Sagan $VERSION")
+AC_DEFINE_UNQUOTED(PACKAGE_NAME, "iWar" )
+AC_DEFINE_UNQUOTED(PACKAGE_STRING, "iWar $VERSION")
 AC_DEFINE_UNQUOTED(PACKAGE_BUGREPORT, "cclark@quadrantsec.com" )
-AC_DEFINE_UNQUOTED(PACKAGE_TARNAME, "sagan" )
+AC_DEFINE_UNQUOTED(PACKAGE_TARNAME, "iwar" )
 AC_DEFINE_UNQUOTED(PACKAGE_VERSION, "$VERSION" )
 
 AC_CONFIG_FILES([Makefile src/Makefile])
