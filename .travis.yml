@@ -1,6 +1,7 @@
 # Default parameters, even this default build is excluded in the build
 # matrix below. We define so Travis doesn't think this is a Ruby
 # project.
+#
 os: linux
 language: c
 compiler: gcc
