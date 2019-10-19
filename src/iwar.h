@@ -17,7 +17,7 @@ void NCURSES_Timer( int timer );
 
 void ncount( int ncount);
 void NCURSES_Intro( void );
-void npause( int );
+void NCURSES_Pause( int type );
 void ninfo(const char *, int );  /* 1 = ERROR , 2 = WARN */
 
 void NCURSES_Plot(long long dialnum, int row,  int col);

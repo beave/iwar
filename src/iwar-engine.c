@@ -2448,11 +2448,15 @@ int main(int argc,  char **argv)
 
                             sendmodem("\r");
 
-                            if ( key == (int)'p') npause(0);
+                            if ( key == (int)'p') 
+				    {
+					    NCURSES_Pause(0);
+				    }
+
                             if ( key == (int)'[')
                                 {
                                     loginfo(mysqllog, "Paused and marked as interesting", "", recordbuf);
-                                    npause(1);
+                                    NCURSES_Pause(1);
                                 }
 
                             waitin=0;

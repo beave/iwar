@@ -283,7 +283,7 @@ void ninfo(const char *msg, int mtype)
 
 /* Screen for when the user pauses iWar */
 
-void npause(int ntype)
+void NCURSES_Pause(int type )
 {
     WINDOW *info;
 
@@ -306,8 +306,8 @@ void npause(int ntype)
                 }
         }
 
-    if ( ntype == 0 ) mvwprintw(info, 3, 9, "Paused - Hit any key to continue.");
-    if ( ntype == 1 ) mvwprintw(info, 3, 9, "Paused and Marked: Any Key Resumes");
+    if ( type == 0 ) mvwprintw(info, 3, 9, "Paused - Hit any key to continue.");
+    if ( type == 1 ) mvwprintw(info, 3, 9, "Paused and Marked: Any Key Resumes");
 
     wrefresh(info);
 
