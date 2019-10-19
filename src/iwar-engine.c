@@ -169,8 +169,6 @@ void closetty(int sig )
 void sendmodem(const char *sendstring)
 {
 
-    char *dest=NULL;
-    char dialstring[128] = { 0 };
     int len;
 
     /* modemqueue is used for things like volume changes,  speaker off, etc */
@@ -512,10 +510,6 @@ void rowcolcheck( void )
 
 void loginfo(int mysqllog, const char *response, const char *ident, const char *recordbuf )
 {
-
-
-    int   length;
-    char sqltmp[1024];
 
     time_t t;
     struct tm *now;
@@ -1628,10 +1622,10 @@ int main(int argc,  char **argv)
                                         }
                                 }
 
-                            if (!strcmp(scanbuf, "NO CARRIER") && waitin > 5 ||
-                                    !strcmp(scanbuf, "NO ANSWER")  && waitin > 5  ||
-                                    !strcmp(scanbuf, "NO CARRIER") && connectflag == 1 ||
-                                    !strcmp(scanbuf, "NO ANSWER")  && connectflag == 1 )
+                            if ( ( !strcmp(scanbuf, "NO CARRIER") && waitin > 5 ) ||
+                                  ( !strcmp(scanbuf, "NO ANSWER")  && waitin > 5 ) ||
+                                  ( !strcmp(scanbuf, "NO CARRIER") && connectflag == 1 ) ||
+                                  (  !strcmp(scanbuf, "NO ANSWER")  && connectflag == 1 ) )
 
                                 {
                                     sendcr=0;

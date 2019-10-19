@@ -206,7 +206,10 @@ void NCURSES_Plot(long long dialnum, int row,  int col)
 
 void nright(int type, int value)
 {
-    int maxcol, maxrow, rrow;
+    int maxcol = 0;
+    int maxrow = 0;
+    int rrow = 0; 
+
     getmaxyx(stdscr,maxrow, maxcol);
 
     if (type==1) rrow=1;    /* CONNECT */
