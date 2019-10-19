@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2005,2006 Softwink,  Inc. <beave@softwink.com>
+** Copyright (C) 2005-2019 - Champ Clark III - dabeave@gmail.com
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -55,7 +55,6 @@ void NCURSES_Mainscreen( void )
     init_pair(4, COLOR_BLACK, COLOR_YELLOW);  /* Warn message   */
     init_pair(5, COLOR_BLACK, COLOR_WHITE);   /* Intro message  */
     init_pair(6, COLOR_RED,   COLOR_WHITE);   /* Intro border   */
-
 
     init_pair(10, COLOR_WHITE, COLOR_BLACK);  /* NO CARRIER */
     init_pair(11, COLOR_GREEN, COLOR_BLACK);  /* CONNECT    */
@@ -204,7 +203,7 @@ void NCURSES_Plot(long long dialnum, int row,  int col)
 
 /* Some basic statistics */
 
-void nright(int type, int value)
+void NCURSES_Right(int type, int value)
 {
     int maxcol = 0;
     int maxrow = 0;
@@ -228,7 +227,7 @@ void nright(int type, int value)
 
 /* Number of numbers left to dial */
 
-void ncount(int ncount)
+void NCURSES_Count(int ncount)
 {
     int maxrow;
     int maxcol;
@@ -242,7 +241,7 @@ void ncount(int ncount)
 /* Draws information box in the center of the screen.  Yellow for warning,
    red for errors (determined by mtype) */
 
-void ninfo(const char *msg, int mtype)
+void NCURSES_Info(const char *msg, int mtype)
 {
 
     WINDOW *info;
@@ -374,10 +373,6 @@ void NCURSES_Filename(char *str, size_t size)
                 case KEY_BACKSPACE:
                     form_driver(form, REQ_DEL_PREV);
                     form_driver(form, REQ_DEL_CHAR);
-
-                    /* This is just wrong,  I think.. but works */
-                    snprintf(tmp, sizeof(tmp), buf);
-                    strncpy(buf, tmp, sizeof(buf));
                     break;
 
                 /* KEY_BACKSPACE never seems to work for me.
@@ -386,20 +381,15 @@ void NCURSES_Filename(char *str, size_t size)
                 case 0x08:
                     form_driver(form, REQ_DEL_PREV);
                     form_driver(form, REQ_DEL_CHAR);
-                    snprintf(tmp, sizeof(tmp), buf);
-                    strncpy(buf, tmp, sizeof(buf));
                     break;
                 case 0x7f:
                     form_driver(form, REQ_DEL_PREV);
                     form_driver(form, REQ_DEL_CHAR);
-                    snprintf(tmp, sizeof(tmp), buf);
-                    strncpy(buf, tmp, sizeof(buf));
                     break;
                 default:
                     form_driver(form, key);
-
                     snprintf(tmp, sizeof(tmp), "%c", key);
-                    strncat(buf, tmp, sizeof(buf));
+                    strlcat(buf, tmp, sizeof(buf));
                 }
         }
 
@@ -419,7 +409,7 @@ void NCURSES_Filename(char *str, size_t size)
 /* Get user input about a number.  This creates a dialog box for the user
    to enter data */
 
-char *nsimpleform()
+void NCURSES_SimpleForm(char *str, size_t size)
 {
 
     FIELD *field[2];
@@ -469,27 +459,20 @@ char *nsimpleform()
                 case KEY_BACKSPACE:
                     form_driver(form, REQ_DEL_PREV);
                     form_driver(form, REQ_DEL_CHAR);
-
-                    snprintf(tmp, sizeof(tmp), buf);
-                    strncpy(buf, tmp, sizeof(buf));
                     break;
 
                 case 0x08:
                     form_driver(form, REQ_DEL_PREV);
                     form_driver(form, REQ_DEL_CHAR);
-                    snprintf(tmp, sizeof(tmp), buf);
-                    strncpy(buf, tmp, sizeof(buf));
                     break;
                 case 0x7f:
                     form_driver(form, REQ_DEL_PREV);
                     form_driver(form, REQ_DEL_CHAR);
-                    snprintf(tmp, sizeof(tmp), buf);
-                    strncpy(buf, tmp, sizeof(buf));
                     break;
                 default:
                     form_driver(form, key);
                     snprintf(tmp, sizeof(tmp), "%c", key);
-                    strncat(buf, tmp, sizeof(buf));
+                    strlcat(buf, tmp, sizeof(buf));
 
                 }
         }
@@ -502,8 +485,7 @@ char *nsimpleform()
     touchwin(stdscr);
     refresh();
 
-    bufpoint=buf;
-    return bufpoint;
+    snprintf(str, size, "%s", buf);
 
 }
 
@@ -537,14 +519,14 @@ void NCURSES_Intro()
 
     strncpy(msg, "Intelligent War Dialer  [iWar]", sizeof(msg));
     mvwprintw(info, 1, (50-strlen(msg)) / 2, "%s", msg);
-    strncpy(msg, "http://www.softwink.com/iwar", sizeof(msg));
+    strncpy(msg, "https://github.com/beave/iwar", sizeof(msg));
     mvwprintw(info, 2, (50-strlen(msg)) / 2, "%s", msg);
     snprintf(msg, sizeof(msg), "Version: %s", VERSION);
     mvwprintw(info, 3, (50-strlen(msg)) / 2, "%s", msg);
     strncpy(msg, "\"Now with 101% more VoIP!\"", sizeof(msg));
     mvwprintw(info, 4, (50-strlen(msg)) / 2, "%s", msg);
     wattrset(info, COLOR_PAIR(6));
-    strncpy(msg, "Written By Da Beave (j", sizeof(msg));
+    strncpy(msg, "Written By Da Beave", sizeof(msg));
     mvwprintw(info, 6, (50-strlen(msg)) / 2, "%s", msg);
     wattrset(info, COLOR_PAIR(5));
     strncpy(msg, "Released XXX. XXth 2019", sizeof(msg));

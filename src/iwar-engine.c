@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2005,2006 Softwink,  Inc. <beave@softwink.com>
+** Copyright (C) 2005-2019 - Champ Clark III - dabeave@gmail.com
 **
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@
 #include <curses.h>
 #include <sys/types.h>
 #include <limits.h>
+#include <getopt.h>
 
 #include "iserial.h"
 #include "version.h"
@@ -83,49 +84,49 @@ long long userlistnum[9999];
 /*                         General Help/Usage                              */
 /***************************************************************************/
 
-void usage(void)
+void Usage(void)
 {
-    printf("\niWar [Intelligent Wardialer] Version %s - By Da Beave (beave@softwink.com)\n\n",VERSION);
-    printf("usage: iwar [parameters] -r [dial range]\n\n");
-    printf("\t -h  :  Prints this screen\n");
-    printf("\t -s  :  Speed/Baud rate [Serial default: 1200]\n");
-    printf("\t -p  :  Parity (None/Even/Odd) \n\t\t[Serial default 'N'one]\n");
-    printf("\t -d  :  Data bits [Serial default: 8]\n");
-    printf("\t -t  :  TTY to use (modem) \n\t\t[Serial default /dev/ttyS0]\n");
-    printf("\t -c  :  Use software handshaking (XON/XOFF)\n\t\t[Serial default is hardware flow control]\n");
-    printf("\t -f  :  Output log file [Default: iwar.log]\n");
-    printf("\t -e  :  Pre-dial string/NPA to scan [Optional]\n");
-    printf("\t -g  :  Post-dial string [Optional]\n");
-    printf("\t -a  :  Tone Location (Toneloc W; method) \n\t\t[Serial default: disabled]\n");
-    printf("\t -r  :  Range to scan (ie - 5551212-5551313)\n");
-    printf("\t -x  :  Sequential dialing [Default: Random]\n");
-    printf("\t -F  :  Full logging (BUSY, NO CARRIER, Timeouts, Skipped, etc)\n");
-    printf("\t -b  :  Disable banners check \n\t\t[Serial Default: enabled]\n");
-    printf("\t -o  :  Disable recording banner data \n\t\t[Serial default: enabled].\n");
-    printf("\t -L  :  Load numbers to dial from file.\n");
-    printf("\t -l  :  Load 'saved state' file (previously dialed numbers)\n");
+    printf("\niWar [Intelligent Wardialer] Version %s - By Da Beave (dabeave@gmail.com)\n\n",VERSION);
+    printf("Usage: iwar [parameters] --range [dial range]\n\n");
+    printf(" --help / -h \t\t:  Prints this screen\n");
+    printf(" --speed / -s \t\t:  Speed/Baud rate [Serial default: 1200]\n");
+    printf(" --parity / -p \t\t:  Parity (None/Even/Odd) [Default (N)one]\n");
+    printf(" --databits / -d \t:  Data bits [Serial default: 8]\n");
+    printf(" --device / -t \t\t:  TTY to use (modem) [Default /dev/ttyUSB0]\n");
+    printf(" --software / -c\t:  Use software handshaking (XON/XOFF) [Default is hardware flow control]\n");
+    printf(" --log / -f \t\t:  Output log file [Default: iwar.log]\n");
+    printf(" --predial / -e \t:  Pre-dial string/NPA to scan [Optional]\n");
+    printf(" --postdial / -g \t:  Post-dial string [Optional]\n");
+    printf(" --tonedetect / -a \t:  Tone Location (Toneloc W; method) [Default: disabled]\n");
+    printf(" --range  / -r \t\t:  Range to scan (ie - 5551212-5551313)\n");
+    printf(" --sequential / -x \t:  Sequential dialing [Default: Random]\n");
+    printf(" --full-logging /-F \t:  Full logging (BUSY, NO CARRIER, Timeouts, Skipped, etc)\n");
+    printf(" --disable-banner / -b \t:  Disable banners check [Default: enabled]\n");
+    printf(" --disable-record / -o \t:  Disable recording banner data [Dfault: enabled].\n");
+    printf(" --load / -L \t\t:  Load numbers to dial from file.\n");
+    printf(" --load-state / -l \t:  Load 'saved state' file (previously dialed numbers)\n");
 
     printf("\n");
 
 };
 
 /***********************************************************************/
-/* closetty() - This is for trapping signals and/or errors.            */
+/* CloseTTY() - This is for trapping signals and/or errors.            */
 /***********************************************************************/
 
-void closetty(int sig )
+void CloseTTY(int sig )
 {
 
     switch(sig)
         {
         case 1:
-            ninfo("Error reading TTY.  Aborting!", 1);
+            NCURSES_Info("Error reading TTY.  Aborting!", ERROR);
             endwin();
             exit(1);
             break;
 
         case -2:
-            ninfo("Write error! Closing serial and aborting!", 1);
+            NCURSES_Info("Write error! Closing serial and aborting!", ERROR);
             endwin();
             exit(1);
             break;
@@ -134,7 +135,7 @@ void closetty(int sig )
 
         case -3:
             fprintf(stderr, "[No Dialtone! Closing serial/output!]\n");
-            ninfo("No dial tone! Aborting.....", 1);
+            NCURSES_Info("No dial tone! Aborting.....", ERROR);
             exit(1);
             break;
 
@@ -145,13 +146,15 @@ void closetty(int sig )
         default:
 
             m_dtrtoggle(portfd,2);   /* DTR Hangup */
-            sendmodem("\r");
-            plushangup(4);
+            SendModem("\r");
+            PlusHangup(4);
 
             snprintf(tmp, sizeof(tmp), "Signal %d received! Aborting.....", sig);
             dialnum=0;
-            loginfo(0, tmp, "", "");
-            ninfo(tmp, 1);
+
+            LogInfo(tmp, "", "");
+
+            NCURSES_Info(tmp, ERROR);
             endwin();
             exit(1);
             break;
@@ -163,10 +166,10 @@ void closetty(int sig )
 }
 
 /***********************************************************************/
-/* sendmodem() -  How to send data to the modem                        */
+/* SendModem() -  How to send data to the modem                        */
 /***********************************************************************/
 
-void sendmodem(const char *sendstring)
+void SendModem(const char *sendstring)
 {
 
     int len;
@@ -206,12 +209,12 @@ void sendmodem(const char *sendstring)
 }
 
 /**********************************************************************/
-/* getnum() - Gets a sequential/random number for dialing.  Also      */
+/* GetNumber() - Gets a sequential/random number for dialing.  Also   */
 /* check against blacklist numbers and pre-dialed numbers (loaded     */
 /* from a file                                                        */
 /**********************************************************************/
 
-int getnum(int dialtype, int mysqllog, int tonedetect, const char *predial, const char *postdial)
+int GetNumber(int dialtype, int tonedetect, const char *predial, const char *postdial)
 {
 
     /*********************************************************/
@@ -225,8 +228,8 @@ int getnum(int dialtype, int mysqllog, int tonedetect, const char *predial, cons
             if (j == userlistcount)
                 {
                     dialnum=0;
-                    loginfo(0, "User Generated Scan Completed!", "", "");
-                    ninfo("User Generated Scan Completed!", 1);
+                    LogInfo("User Generated Scan Completed!", "", "");
+                    NCURSES_Info("User Generated Scan Completed!", WARN);
                     endwin();
                     printf("User Generated Scan Completed!\n");
                     exit(0);
@@ -243,11 +246,11 @@ int getnum(int dialtype, int mysqllog, int tonedetect, const char *predial, cons
                             if (blacklistnum[k] == dialnum)
                                 {
                                     NCURSES_Status("Blacklisted Number - Skipping...");
-                                    loginfo(mysqllog, "BLACKLISTED", "", "");
+                                    LogInfo("BLACKLISTED", "", "");
                                     attron( COLOR_PAIR(15) | A_REVERSE);
                                     NCURSES_Plot(dialnum, row, col);
                                     attroff(COLOR_PAIR(15) | A_REVERSE);
-                                    rowcolcheck();
+                                    RowColCheck();
                                     sleep(1);
                                     j++;
                                     dialnum=userlistnum[j];
@@ -261,7 +264,7 @@ int getnum(int dialtype, int mysqllog, int tonedetect, const char *predial, cons
                         }
                 }
 
-            ncount(userlistcount-j);
+            NCURSES_Count(userlistcount-j);
             if ( tonedetect==1)
                 {
                     snprintf(sendstring, sizeof(sendstring), "ATDT%s%lld%sW;\r", predial, dialnum, postdial);
@@ -288,8 +291,8 @@ int getnum(int dialtype, int mysqllog, int tonedetect, const char *predial, cons
             if (ss >= es+1)
                 {
                     dialnum=0;
-                    loginfo(0, "Sequential Scan Completed!", "", "");
-                    ninfo("Sequential Scan Completed!",1);
+                    LogInfo("Sequential Scan Completed!", "", "");
+                    NCURSES_Info("Sequential Scan Completed!",WARN);
                     endwin();
                     printf("Sequential Scan Completed!\n");
                     exit(0);
@@ -306,11 +309,11 @@ int getnum(int dialtype, int mysqllog, int tonedetect, const char *predial, cons
                             if (blacklistnum[k] == dialnum)
                                 {
                                     NCURSES_Status("Blacklisted Number - Skipping...");
-                                    loginfo(mysqllog, "BLACKLISTED", "", "");
+                                    LogInfo("BLACKLISTED", "", "");
                                     attron( COLOR_PAIR(15) | A_REVERSE);
                                     NCURSES_Plot(dialnum, row, col);
                                     attroff(COLOR_PAIR(15) | A_REVERSE);
-                                    rowcolcheck();
+                                    RowColCheck();
                                     sleep(1);
                                     ss++;
                                     dialnum=ss;
@@ -365,7 +368,7 @@ int getnum(int dialtype, int mysqllog, int tonedetect, const char *predial, cons
             num[j]=ss;
             j++;
             ss++;
-            ncount(es-ss+1);
+            NCURSES_Count(es-ss+1);
             return 0;
         }
 
@@ -414,8 +417,8 @@ int getnum(int dialtype, int mysqllog, int tonedetect, const char *predial, cons
                                     attron( COLOR_PAIR(15) | A_REVERSE);
                                     NCURSES_Plot(dialnum, row, col);
                                     attroff(COLOR_PAIR(15) | A_REVERSE);
-                                    rowcolcheck();
-                                    loginfo(mysqllog, "BLACKLISTED", "", "");
+                                    RowColCheck();
+                                    LogInfo("BLACKLISTED", "", "");
                                     sleep(1);
                                     num[j] = dialnum;
                                     j++;
@@ -440,7 +443,7 @@ int getnum(int dialtype, int mysqllog, int tonedetect, const char *predial, cons
                                 }
 
 
-                            ncount(es-ss-j+k+1);  /* k is for saved state or not */
+                            NCURSES_Count(es-ss-j+k+1);  /* k is for saved state or not */
                             return 0;
                         }
                     flag=0;
@@ -451,8 +454,8 @@ int getnum(int dialtype, int mysqllog, int tonedetect, const char *predial, cons
        mission */
 
     dialnum=0;
-    loginfo(0, "Random Scan Completed!", "", "");
-    ninfo("Random Scan Completed!",1);
+    LogInfo("Random Scan Completed!", "", "");
+    NCURSES_Info("Random Scan Completed!",WARN);
     endwin();
     printf("Random Scan Completed!\n");
     exit(0);
@@ -460,11 +463,11 @@ int getnum(int dialtype, int mysqllog, int tonedetect, const char *predial, cons
 
 
 /***********************************************************************/
-/* rowcolcheck() -  Checks to make make sure we are not trying to      */
+/* RowColCheck() -  Checks to make make sure we are not trying to      */
 /* information outside of the screen                                   */
 /***********************************************************************/
 
-void rowcolcheck( void )
+void RowColCheck( void )
 {
     int maxrow;
     int maxcol;
@@ -503,12 +506,12 @@ void rowcolcheck( void )
 }
 
 /**********************************************************************/
-/* loginfo() - Function takes care of logging information to a ASCII  */
+/* LogInfo() - Function takes care of logging information to a ASCII  */
 /* flat file and a MySQL database.  As it stands,  we always log to   */
 /* a ASCII flat file,  MySQL is optional                              */
 /**********************************************************************/
 
-void loginfo(int mysqllog, const char *response, const char *ident, const char *recordbuf )
+void LogInfo(const char *response, const char *ident, const char *recordbuf )
 {
 
     time_t t;
@@ -519,7 +522,7 @@ void loginfo(int mysqllog, const char *response, const char *ident, const char *
     if ((outfd = fopen(fileout, "a")) == NULL)
         {
             fprintf(stderr, "\nERROR: Can't open %s for output\n\n", fileout);
-            usage();
+            Usage();
             exit(1);
         }
 
@@ -559,66 +562,66 @@ void loginfo(int mysqllog, const char *response, const char *ident, const char *
 }
 
 /**********************************************************************/
-/* plushangup() - This is incase the modem won't hang up via DTR drop */
+/* PlusHangup() - This is incase the modem won't hang up via DTR drop */
 /* If you have to use this function,  prehaps you should get a better */
 /* modem or fix your crap.  Try and _NOT_ use this.                   */
 /**********************************************************************/
 
-void plushangup(int plushangupsleep)
+void PlusHangup(int PlusHangupsleep)
 {
     snprintf(sendstring, sizeof(sendstring), "+++");
     NCURSES_Status("+++");
-    sendmodem(sendstring);
-    sleep(plushangupsleep);
+    SendModem(sendstring);
+    sleep(PlusHangupsleep);
     NCURSES_Status("ATH");
     snprintf(sendstring, sizeof(sendstring), "ATH\r");
-    sendmodem(sendstring);
-    sleep(plushangupsleep);
+    SendModem(sendstring);
+    sleep(PlusHangupsleep);
 }
 
 /*********************************************************************/
-/* dtrreinit() - This is for modems that treat DTR drops like        */
+/* DTRReInit() - This is for modems that treat DTR drops like        */
 /* sending "ATZ" to the modem.  In this case,  the DTR causes the    */
 /* modem to "forget" the init string that we used!   This just       */
 /* re-informs the modem.   This is useful for USR Couriers           */
 /*********************************************************************/
 
-void dtrreinit(const char *modeminit, int volume)
+void DTRReInit(const char *modeminit, int volume)
 {
 
     strlcpy(tmp, modeminit, sizeof(tmp));
-    sendmodem(tmp);
+    SendModem(tmp);
     sleep(1);
-    if (volume == 0) sendmodem("ATM0\r");
-    if (volume == 1) sendmodem("ATM1L1\r");
-    if (volume == 2) sendmodem("ATM1L2\r");
-    if (volume == 3) sendmodem("ATM1L3\r");
+    if (volume == 0) SendModem("ATM0\r");
+    if (volume == 1) SendModem("ATM1L1\r");
+    if (volume == 2) SendModem("ATM1L2\r");
+    if (volume == 3) SendModem("ATM1L3\r");
     sleep(1);
 }
 
 /*********************************************************************/
-/* exitscreen() - A bit of information after we destroy all windows  */
+/* ExitScreen() - A bit of information after we destroy all windows  */
 /* and we're back at the *nix prompt                                 */
 /*********************************************************************/
 
-void exitscreen(int connect, int nocarrier, int voice, int busy, int tonesilence,  int mark, int skip)
+void ExitScreen(int connect, int nocarrier, int voice, int busy, int tonesilence,  int mark, int skip)
 {
 
     printf("================================================================================\n");
     printf("CONNECT: %d | NO CARRIER: %d | VOICE: %d | BUSY: %d | TONE: %d | MARK: %d | SKIP: %d\n", connect, nocarrier, voice, busy, tonesilence, mark, skip);
     printf("================================================================================\n");
-    printf("Written Da Beave | beave@softwink.com | Version : %s\n\n", VERSION);
+    printf("iWar Version : %s | https://github.com/beave/iwar | By Da Beave [@dabeave666]\n\n", VERSION);
     printf("Exiting iWar ......\n");
     exit(0);
 
 }
 
 /**********************************************************************/
-/* drawinfo().  Draws the main screen.   This is called on startup    */
+/* DrawInfo().  Draws the main screen.   This is called on startup    */
 /* and when the user re-sizes the screen                              */
 /**********************************************************************/
 
-void drawinfo( const char *baudrate,
+void DrawInfo( const char *baudrate,
                const char *bits,
                const char *parity,
                const char *tty,
@@ -703,12 +706,12 @@ void drawinfo( const char *baudrate,
 
     move(4,20);
     printw("%s %s", fileout, tmp2);
-    nright(1,connect);
-    nright(2,nocarrier);
-    nright(3,busy);
-    nright(4,voice);
-    nright(5,tonesilence);
-    nright(6,timeout);
+    NCURSES_Right(1,connect);
+    NCURSES_Right(2,nocarrier);
+    NCURSES_Right(3,busy);
+    NCURSES_Right(4,voice);
+    NCURSES_Right(5,tonesilence);
+    NCURSES_Right(6,timeout);
 
 }
 
@@ -766,11 +769,11 @@ int main(int argc,  char **argv)
     int dtrinit=0;
     int volume=3;
     int ok=0;
-    int plushangupsleep=4;
+    int PlusHangupsleep=4;
 
     /* Setup some default port settings */
 
-    char tty[20]		= "/dev/ttyS0";
+    char tty[20]		= "/dev/ttyUSB0";
     char baudrate[7]		= "1200";
     char parity[2]		= "N";
     char bits[2]		= "8";
@@ -805,7 +808,6 @@ int main(int argc,  char **argv)
     int remotering=0;
     int bannercheck=1;
     int beepflag=0;
-    int mysqllog=0;
     char bannerbuf[1024] = { 0 };
     char iwarbuf[1024] = { 0 };
     int connectflag=0;
@@ -830,7 +832,7 @@ int main(int argc,  char **argv)
     if ((iwarcfg = fopen(iwarconf, "r")) == NULL)
         {
             fprintf(stderr, "\nERROR: Cannot open configuration file (%s)\n\n",iwarconf);
-            usage();
+            Usage();
             exit(1);
         }
 
@@ -948,12 +950,12 @@ int main(int argc,  char **argv)
                 }
 
             if (!strcmp(iwar_option, "beep")) beepflag=1;
-            if (!strcmp(iwar_option, "plushangup")) plushang=1;
+            if (!strcmp(iwar_option, "PlusHangup")) plushang=1;
 
-            if (!strcmp(iwar_option, "plushangupsleep"))
+            if (!strcmp(iwar_option, "PlusHangupsleep"))
                 {
                     strlcpy(tmp, iwar_value, sizeof(tmp));
-                    plushangupsleep=atoi(tmp);
+                    PlusHangupsleep=atoi(tmp);
                 }
         }
 
@@ -963,12 +965,41 @@ int main(int argc,  char **argv)
     /* Get command line options now                                           */
     /**************************************************************************/
 
-    while ((c = getopt (argc, argv, "r:s:p:l:L:d:t:e:g:f:r:hacxFobm")) != EOF)
+    const struct option long_options[] =
+    {
+        { "help",         no_argument,          NULL,   'h' },
+        { "speed",        required_argument,    NULL,   's' },
+        { "parity",       required_argument,    NULL,   'p' },
+        { "databits",     required_argument,    NULL,   'd' },
+        { "device",       required_argument,    NULL,   't' },
+        { "load-state",   required_argument,    NULL,   'l' },
+        { "load",         required_argument,    NULL,   'L' },		/* Load from file */
+	{ "log", 	  required_argument,    NULL,   'f' },
+	{ "software",	  no_argument, 		NULL, 	'c' }, 
+	{ "config",	  required_argument,    NULL, 	'C' }, 
+	{ "range",	  required_argument,    NULL, 	'r' },
+	{ "predial",	  required_argument,    NULL,   'e' }, 
+	{ "postdial",  	  required_argument,    NULL,   'g' }, 
+	{ "tonedetect",	  no_argument, 		NULL, 	'a' }, 
+	{ "sequential",   no_argument,          NULL,   'x' },
+        { "full-logging", no_argument,          NULL,   'F' },
+        { "disable-banner", no_argument,        NULL,   'b' },
+	{ "disable-record", no_argument,        NULL,   'o' },
+        {0, 0, 0, 0}
+    };
+
+        static const char *short_options = "s:p:d:t:l:L:f:C:r:e:g:chaxFbo";
+
+	int option_index = 0;
+
+     while ((c = getopt_long(argc, argv, short_options, long_options, &option_index)) != -1)
+
+
         {
             switch(c)
                 {
                 case 'h':
-                    usage();
+                    Usage();
                     exit(0);
                     break;
                 case 's':
@@ -988,9 +1019,10 @@ int main(int argc,  char **argv)
                             break;
                         }
                     fprintf(stderr, "\nERROR: Invalid port speed.\n\n");
-                    usage();
+                    Usage();
                     exit(1);
                     break;
+
                 case 'p':
                     if (!strcmp(optarg, "N") || !strcmp(optarg,"E") ||
                             !strcmp(optarg,"O"))
@@ -999,8 +1031,9 @@ int main(int argc,  char **argv)
                             parity[sizeof(parity)-1] = '\0';
                             break;
                         }
+
                     fprintf(stderr, "\nERROR: Invalid Parity.\n\n");
-                    usage();
+                    Usage();
                     exit(1);
                     break;
 
@@ -1017,67 +1050,75 @@ int main(int argc,  char **argv)
                         }
 
                     fprintf(stderr, "\nERROR: Invalid Databits\n\n");
-                    usage();
+                    Usage();
                     exit(1);
                     break;
+
                 case 't':
                     if (strlen(optarg) > 20)
                         {
                             fprintf(stderr, "\nERROR: TTY is to long\n\n");
-                            usage();
+                            Usage();
                             exit(1);
                         }
                     strlcpy(tty, optarg, sizeof(tty));
                     break;
+
                 case 'l':
                     if (strlen(optarg) > MAXPATH)
                         {
                             fprintf(stderr, "\nERROR: State filename to long!\n\n");
-                            usage();
+                            Usage();
                             exit(1);
                         }
                     strlcpy(statefile, optarg, sizeof(statefile));
                     break;
+
                 case 'L':
                     if (strlen(optarg) > MAXPATH)
                         {
                             fprintf(stderr, "\nERROR: Number filename to long!\n\n");
-                            usage();
+                            Usage();
                             exit(1);
                         }
                     strlcpy(numbersfile, optarg, sizeof(numbersfile));
                     break;
+
                 case 'f':
                     if (strlen(optarg)> MAXPATH)
                         {
                             fprintf(stderr, "\nERROR: Log file to long\n\n");
-                            usage();
+                            Usage();
                             exit(1);
                         }
                     strlcpy(fileout, optarg, sizeof(fileout));
                     break;
+
                 case 'c':
                     swhandshake=1;
                     hwhandshake=0;
                     break;
+
                 case 'C':
                     if (strlen(optarg)> MAXPATH)
                         {
                             fprintf(stderr, "\nERROR: Configuration file path to long\n\n");
-                            usage();
+                            Usage();
                             exit(1);
                         }
                     strlcpy(iwarconf, optarg, sizeof(iwarconf));
                     break;
+
                 case 'r':
                     if (strlen(optarg) > 40)
                         {
                             fprintf(stderr, "\nERROR: Scan range to long!\n\n");
-                            usage();
+                            Usage();
                             exit(1);
                         }
                     strlcpy(tmpscanrange, optarg, sizeof(tmpscanrange));
                     break;
+
                 case 'e':
                     if (strlen(optarg) > 40)
                         {
@@ -1085,6 +1126,7 @@ int main(int argc,  char **argv)
                         }
                     strlcpy(predial, optarg, sizeof(predial));
                     break;
+
                 case 'g':
                     if (strlen(optarg) > 40)
                         {
@@ -1093,24 +1135,29 @@ int main(int argc,  char **argv)
                         }
                     strlcpy(postdial, optarg, sizeof(postdial));
                     break;
+
                 case 'a':
                     tonedetect=1;
                     break;
+
                 case 'x':
                     dialtype=1;
                     break;
+
                 case 'F':
                     logtype=1;
                     break;
+
                 case 'b':
                     bannercheck=0;
                     break;
+
                 case 'o':
                     record=0;
                     break;
-                case 'm':
+
                 default:
-                    usage();
+                    Usage();
                     exit(0);
                     break;
                 }
@@ -1129,7 +1176,7 @@ int main(int argc,  char **argv)
             if ( tmpscanrange[0] == '\0' )
                 {
                     printf("ERROR: No range specified! (See the -r option)\n");
-                    usage();
+                    Usage();
                     exit(1);
                 }
 
@@ -1148,21 +1195,21 @@ int main(int argc,  char **argv)
             if (es == 0  || ss == es)
                 {
                     fprintf(stderr, "\nERROR: Invalid dial range specified!\n\n");
-                    usage();
+                    Usage();
                     exit(1);
                 }
 
             if ( ss > es )
                 {
                     fprintf(stderr, "\nERROR: Start is GREATER than the ending!\n\n");
-                    usage();
+                    Usage();
                     exit(1);
                 }
 
             if ( es > RAND_MAX && dialtype == 0)
                 {
                     fprintf(stderr, "\nERROR: Largest random number is %d.  Try using the predial string.\n\n", RAND_MAX);
-                    usage();
+                    Usage();
                     exit(1);
                 }
 
@@ -1346,7 +1393,7 @@ int main(int argc,  char **argv)
     if ((outfd = fopen(fileout, "a")) == NULL)
         {
             fprintf(stderr, "\nERROR: Can't open %s for output\n\n", fileout);
-            usage();
+            Usage();
             exit(1);
         }
 
@@ -1356,7 +1403,7 @@ int main(int argc,  char **argv)
     /********************************************/
 
     fprintf(outfd, "\n\n------------------------------------------------------------------------------\n");
-    fprintf(outfd, "= iWar version %s - By Da Beave (beave@softwink.com)\n", VERSION);
+    fprintf(outfd, "= iWar version %s - By Da Beave (dabeave@gmail.com)\n", VERSION);
 
     fprintf(outfd, "= Port Settings : %s,%s,%s (%s)\n", baudrate, bits, parity, tty);
     fprintf(outfd, "= HW Handshaking: %d  | Tone location : %d\n", hwhandshake, tonedetect);
@@ -1418,11 +1465,11 @@ int main(int argc,  char **argv)
 
     /* What to do in the event of a signal */
 
-    signal (SIGHUP,  &closetty);
-    signal (SIGINT,  &closetty);
-    signal (SIGQUIT, &closetty);
-    signal (SIGTERM, &closetty);
-    signal (SIGABRT, &closetty);
+    signal (SIGHUP,  &CloseTTY);
+    signal (SIGINT,  &CloseTTY);
+    signal (SIGQUIT, &CloseTTY);
+    signal (SIGTERM, &CloseTTY);
+    signal (SIGABRT, &CloseTTY);
 
     /* Draw main screen/window.... */
 
@@ -1441,7 +1488,7 @@ int main(int argc,  char **argv)
     oldmaxrow=maxrow;
     oldmaxcol=maxcol;
 
-    drawinfo(baudrate,bits,parity,tty,numbersfile,predial,postdial,logtype,
+    DrawInfo(baudrate,bits,parity,tty,numbersfile,predial,postdial,logtype,
              connect,nocarrier,busy,voice,tonesilence,dialtype,timeout);
 
     modemstatus = newwin(6, maxcol-5, maxrow-7,2);  /* Our terminal screen */
@@ -1456,17 +1503,17 @@ int main(int argc,  char **argv)
 
     if ( modeminit[0] != '\0' )
         {
-            sendmodem(modeminit);
+            SendModem(modeminit);
             NCURSES_Status("Initializing Modem....");
-            ninfo("Initializing Modem....", 2);
+            NCURSES_Info("Initializing Modem....", WARN);
             sleep(1);  /* Give's me a warm fuzzy */
             ok=1;
         }
 
-    getnum(dialtype, mysqllog, tonedetect, predial, postdial);
+    GetNumber(dialtype, tonedetect, predial, postdial);
 
     NCURSES_Status(sendstring);
-    sendmodem(sendstring);
+    SendModem(sendstring);
 
 
     /* If we are loading this from a previous state/file,   go ahead and print */
@@ -1479,7 +1526,7 @@ int main(int argc,  char **argv)
                     attron( COLOR_PAIR(14) | A_NORMAL );
                     NCURSES_Plot(num[i], row, col);
                     attroff(COLOR_PAIR(14) | A_NORMAL );
-                    rowcolcheck();
+                    RowColCheck();
                 }
         }
 
@@ -1496,7 +1543,7 @@ int main(int argc,  char **argv)
             if (select(portfd+1, &fds, NULL, NULL, &tv) > 0 )
                 {
                     buflen = read(portfd, buf, 1);
-                    if (buflen == -1) closetty(-1);
+                    if (buflen == -1) CloseTTY(-1);
                     waitin=0;              /* Got data, reset out nodata counter */
 
                     for (i=0; i<strlen(buf); i++)
@@ -1536,15 +1583,15 @@ int main(int argc,  char **argv)
                             if (bitcount > bannermaxcount)
                                 {
                                     NCURSES_Status("Max banner data received");
-                                    loginfo(mysqllog, "CONNECT", "Not Identified (Max. banner data received)", recordbuf);
+                                    LogInfo("CONNECT", "Not Identified (Max. banner data received)", recordbuf);
                                     if ( plushang == 1)
                                         {
-                                            plushangup(plushangupsleep);
+                                            PlusHangup(PlusHangupsleep);
                                         }
                                     else
                                         {
                                             m_dtrtoggle(portfd,dtrsec);
-                                            if (dtrinit == 1) dtrreinit(modeminit, volume);
+                                            if (dtrinit == 1) DTRReInit(modeminit, volume);
                                         }
 
 
@@ -1555,10 +1602,10 @@ int main(int argc,  char **argv)
                                     scanbuf[0] = '\0';
                                     tmpscanbuf[0] = '\0';
 
-                                    getnum(dialtype, mysqllog, tonedetect, predial,  postdial);
+                                    GetNumber(dialtype, tonedetect, predial,  postdial);
                                     waddch(modemstatus, 10);
                                     NCURSES_Status(sendstring);
-                                    sendmodem(sendstring);
+                                    SendModem(sendstring);
                                     bitcount=0;
                                     ring=0;
                                 }
@@ -1568,7 +1615,7 @@ int main(int argc,  char **argv)
                             if (strstr(scanbuf, "NO DIALTONE") || strstr(scanbuf, "NO DIAL TONE"))
                                 {
                                     NCURSES_Status("No Dialtone!");
-                                    ninfo("NO DIALTONE! Waiting to retry......",2);
+                                    NCURSES_Info("NO DIALTONE! Waiting to retry......",WARN);
                                     touchwin(modemstatus);
                                     wrefresh(modemstatus);
 
@@ -1577,7 +1624,7 @@ int main(int argc,  char **argv)
                                     NCURSES_Status(tmp);
                                     sleep(redial);
                                     NCURSES_Status(sendstring);
-                                    sendmodem(sendstring);
+                                    SendModem(sendstring);
                                     scanbuf[0] = '\0';
                                     tmpscanbuf[0] = '\0';
                                 }
@@ -1589,22 +1636,22 @@ int main(int argc,  char **argv)
                                     attron( COLOR_PAIR(11) | A_BLINK );
                                     NCURSES_Plot(dialnum, row, col);
                                     attroff( COLOR_PAIR(11) | A_BLINK );
-                                    rowcolcheck();
+                                    RowColCheck();
                                     connect++;
-                                    nright(1, connect);
+                                    NCURSES_Right(1, connect);
                                     if (bannercheck == 0 && record != 1)
                                         {
-                                            loginfo(mysqllog, "CONNECT", "", recordbuf);
+                                            LogInfo("CONNECT", "", recordbuf);
                                             recordbuf[0] = '\0';
 
                                             if ( plushang == 1)
                                                 {
-                                                    plushangup(plushangupsleep);
+                                                    PlusHangup(PlusHangupsleep);
                                                 }
                                             else
                                                 {
                                                     m_dtrtoggle(portfd,dtrsec); /* DTR Hangup please */
-                                                    if (dtrinit == 1) dtrreinit(modeminit, volume);
+                                                    if (dtrinit == 1) DTRReInit(modeminit, volume);
                                                 }
 
                                             connectflag=0;
@@ -1612,9 +1659,9 @@ int main(int argc,  char **argv)
 
                                             scanbuf[0] = '\0';
                                             tmpscanbuf[0] = '\0';
-                                            getnum(dialtype, mysqllog, tonedetect, predial, postdial);
+                                            GetNumber(dialtype, tonedetect, predial, postdial);
                                             NCURSES_Status(sendstring);
-                                            sendmodem(sendstring);
+                                            SendModem(sendstring);
                                         }
                                     else
                                         {
@@ -1625,22 +1672,23 @@ int main(int argc,  char **argv)
                             if ( ( !strcmp(scanbuf, "NO CARRIER") && waitin > 5 ) ||
                                   ( !strcmp(scanbuf, "NO ANSWER")  && waitin > 5 ) ||
                                   ( !strcmp(scanbuf, "NO CARRIER") && connectflag == 1 ) ||
-                                  (  !strcmp(scanbuf, "NO ANSWER")  && connectflag == 1 ) )
+                                  ( !strcmp(scanbuf, "NO ANSWER")  && connectflag == 1 ) )
 
                                 {
+
                                     sendcr=0;
                                     ring=0;
                                     if (connectflag==1)   /* We'll get a NO CARRIER once
 		                              a connection drops */
                                         {
                                             connectflag=0;
-                                            loginfo(mysqllog, "CONNECT", "Not Identified (disconnected)", recordbuf);
+                                            LogInfo("CONNECT", "Not Identified (disconnected)", recordbuf);
                                             recordbuf[0] = '\0';
                                             NCURSES_Status("Connection Dropped.");
                                             sleep(redial);
-                                            getnum(dialtype, mysqllog, tonedetect, predial, postdial);
+                                            GetNumber(dialtype, tonedetect, predial, postdial);
                                             NCURSES_Status(sendstring);
-                                            sendmodem(sendstring);
+                                            SendModem(sendstring);
                                             scanbuf[0] = '\0';
                                             tmpscanbuf[0] = '\0';
                                         }
@@ -1650,12 +1698,12 @@ int main(int argc,  char **argv)
                                             attron( COLOR_PAIR(10) | A_NORMAL );
                                             NCURSES_Plot(dialnum, row, col);
                                             attroff( COLOR_PAIR(10) | A_NORMAL );
-                                            rowcolcheck();
+                                            RowColCheck();
                                             nocarrier++;
-                                            nright(2, nocarrier);
+                                            NCURSES_Right(2, nocarrier);
                                             if (logtype==1)
                                                 {
-                                                    loginfo(mysqllog, "NO CARRIER", "", "");
+                                                    LogInfo("NO CARRIER", "", "");
                                                 }
 
                                             sleep(redial);
@@ -1664,9 +1712,9 @@ int main(int argc,  char **argv)
                                             recordbuf[0] = '\0';
 
 
-                                            getnum(dialtype, mysqllog, tonedetect, predial, postdial);
+                                            GetNumber(dialtype, tonedetect, predial, postdial);
                                             NCURSES_Status(sendstring);
-                                            sendmodem(sendstring);
+                                            SendModem(sendstring);
                                         }
 
                                     if (connectflag==2)
@@ -1705,20 +1753,20 @@ int main(int argc,  char **argv)
                             if (!strcmp(scanbuf, "OK") && tonedetect==1 && ok == 0)
                                 {
                                     if ( beepflag == 1) beep();
-                                    loginfo(mysqllog, "TONE", "", "");
+                                    LogInfo("TONE", "", "");
                                     tonesilence++;
-                                    nright(5, tonesilence);
+                                    NCURSES_Right(5, tonesilence);
                                     NCURSES_Status("Found Tone!");
                                     attron( COLOR_PAIR(13) | A_STANDOUT );
                                     NCURSES_Plot(dialnum, row, col);
                                     attroff( COLOR_PAIR(13) | A_STANDOUT );
-                                    rowcolcheck();
-                                    getnum(dialtype, mysqllog, tonedetect, predial, postdial);
+                                    RowColCheck();
+                                    GetNumber(dialtype, tonedetect, predial, postdial);
                                     waddch(modemstatus, 10);
-                                    sendmodem("ATH0\r");
+                                    SendModem("ATH0\r");
                                     sleep(redial);
                                     NCURSES_Status(sendstring);
-                                    sendmodem(sendstring);
+                                    SendModem(sendstring);
                                     scanbuf[0] = '\0';
                                     tmpscanbuf[0] = '\0';
                                     recordbuf[0] = '\0';
@@ -1741,29 +1789,28 @@ int main(int argc,  char **argv)
                                     attron( COLOR_PAIR(12) | A_BOLD );
                                     NCURSES_Plot(dialnum, row, col);
                                     attroff( COLOR_PAIR(12) | A_BOLD );
-                                    rowcolcheck();
+                                    RowColCheck();
                                     busy++;
-                                    nright(3, busy);
+                                    NCURSES_Right(3, busy);
                                     if (logtype==1)
                                         {
-                                            loginfo(mysqllog, "BUSY", "", "");
+                                            LogInfo("BUSY", "", "");
                                         }
 
                                     recordbuf[0] = '\0';
                                     sleep(redial);
-                                    getnum(dialtype, mysqllog, tonedetect, predial, postdial);
+                                    GetNumber(dialtype, tonedetect, predial, postdial);
                                     NCURSES_Status(sendstring);
-                                    sendmodem(sendstring);
+                                    SendModem(sendstring);
                                     scanbuf[0] = '\0';
                                     tmpscanbuf[0] = '\0';
 
                                     ring=0;  /* yes,  weird */
                                 }
 
-                            /* Legend has it that some modems will return a "TONE"
-                            when encountering a.. well.. tone...  I haven't been
-                            able to lay hands on one of these modems,  but why
-                            not support it anyways */
+                            /* Legend has it that some modems will return a "TONE". 
+			     * I've never seen a modem do this,  but this is in here
+			     * in case your modem supports it. */
 
                             if (!strcmp(scanbuf, "TONE"))
                                 {
@@ -1772,12 +1819,12 @@ int main(int argc,  char **argv)
                                     attron( COLOR_PAIR(13) | A_STANDOUT );
                                     NCURSES_Plot(dialnum, row, col);
                                     attroff( COLOR_PAIR(13) | A_STANDOUT);
-                                    rowcolcheck();
-                                    getnum(dialtype, mysqllog, tonedetect, predial, postdial);
+                                    RowColCheck();
+                                    GetNumber(dialtype, tonedetect, predial, postdial);
                                     waddch(modemstatus, 10);
                                     sleep(redial);
                                     NCURSES_Status(sendstring);
-                                    sendmodem(sendstring);
+                                    SendModem(sendstring);
                                     scanbuf[0] = '\0';
                                     tmpscanbuf[0] = '\0';
                                     recordbuf[0] = '\0';
@@ -1790,19 +1837,19 @@ int main(int argc,  char **argv)
                                     attron( COLOR_PAIR(13) | A_UNDERLINE );
                                     NCURSES_Plot(dialnum, row, col);
                                     attroff(COLOR_PAIR(13) | A_UNDERLINE );
-                                    rowcolcheck();
+                                    RowColCheck();
                                     voice++;
-                                    nright(4, voice);
+                                    NCURSES_Right(4, voice);
                                     if (logtype==1)
                                         {
-                                            loginfo(mysqllog, "VOICE", "", "");
+                                            LogInfo("VOICE", "", "");
                                         }
 
                                     recordbuf[0] = '\0';
                                     sleep(redial);
-                                    getnum(dialtype, mysqllog, tonedetect, predial, postdial);
+                                    GetNumber(dialtype, tonedetect, predial, postdial);
                                     NCURSES_Status(sendstring);
-                                    sendmodem(sendstring);
+                                    SendModem(sendstring);
                                     scanbuf[0] = '\0';
                                     tmpscanbuf[0] = '\0';
                                     recordbuf[0] = '\0';
@@ -1813,7 +1860,7 @@ int main(int argc,  char **argv)
 
                             if (!strcmp(scanbuf, "ERROR"))
                                 {
-                                    ninfo("Modem ERROR", 1);
+                                    NCURSES_Info("Modem ERROR", ERROR);
                                     touchwin(modemstatus);
                                     wrefresh(modemstatus);
                                     scanbuf[0] = '\0';
@@ -1837,7 +1884,7 @@ int main(int argc,  char **argv)
                         {
                             if (strstr(scanbuf, bannercfg[b].search_string))
                                 {
-                                    loginfo(mysqllog, "CONNECT", bannercfg[b].os_type, recordbuf);
+                                    LogInfo("CONNECT", bannercfg[b].os_type, recordbuf);
                                     recordbuf[0] = '\0';
                                     NCURSES_Status("System Identified!");
                                     if ( beepflag == 1 )
@@ -1847,12 +1894,12 @@ int main(int argc,  char **argv)
                                         }
                                     if ( plushang == 1)
                                         {
-                                            plushangup(plushangupsleep);
+                                            PlusHangup(PlusHangupsleep);
                                         }
                                     else
                                         {
                                             m_dtrtoggle(portfd,dtrsec);
-                                            if ( dtrinit == 1 ) dtrreinit(modeminit, volume);
+                                            if ( dtrinit == 1 ) DTRReInit(modeminit, volume);
                                         }
 
                                     sleep(conredial);
@@ -1860,9 +1907,9 @@ int main(int argc,  char **argv)
                                     tmpscanbuf[0] = '\0';
                                     recordbuf[0] = '\0';
 
-                                    getnum(dialtype, mysqllog, tonedetect, predial, postdial);
+                                    GetNumber(dialtype, tonedetect, predial, postdial);
                                     NCURSES_Status(sendstring);
-                                    sendmodem(sendstring);
+                                    SendModem(sendstring);
                                     connectflag=0;
                                     bitcount=0;
                                 }
@@ -1873,7 +1920,7 @@ int main(int argc,  char **argv)
                             for (i=0; i<bannersendcr; i++)
                                 {
                                     snprintf(tmp, sizeof(tmp), "\r");
-                                    sendmodem(tmp);
+                                    SendModem(tmp);
                                     bitcount=0;
                                     sendcr=1;		/* Avoid re-sending CR's */
                                 }
@@ -1886,11 +1933,11 @@ int main(int argc,  char **argv)
                         {
                             if (bannercheck == 1)
                                 {
-                                    loginfo(mysqllog, "CONNECT", "Not Identified (stalled)", recordbuf);
+                                    LogInfo("CONNECT", "Not Identified (stalled)", recordbuf);
                                 }
                             else
                                 {
-                                    loginfo(mysqllog, "CONNECT", "Banner detection disabled", recordbuf);
+                                    LogInfo("CONNECT", "Banner detection disabled", recordbuf);
                                 }
 
                             if (bannercheck == 1)
@@ -1904,12 +1951,12 @@ int main(int argc,  char **argv)
 
                             if ( plushang == 1)
                                 {
-                                    plushangup(plushangupsleep);
+                                    PlusHangup(PlusHangupsleep);
                                 }
                             else
                                 {
                                     m_dtrtoggle(portfd,dtrsec);
-                                    if (dtrinit == 1)  dtrreinit(modeminit, volume);
+                                    if (dtrinit == 1)  DTRReInit(modeminit, volume);
                                 }
 
                             sleep(conredial);
@@ -1919,9 +1966,9 @@ int main(int argc,  char **argv)
                             recordbuf[0] = '\0';
 
                             connectflag=0;
-                            getnum(dialtype, mysqllog, tonedetect, predial, postdial);
+                            GetNumber(dialtype, tonedetect, predial, postdial);
                             NCURSES_Status(sendstring);
-                            sendmodem(sendstring);
+                            SendModem(sendstring);
                             waitin=0;
                         }
                 }
@@ -1940,24 +1987,24 @@ int main(int argc,  char **argv)
                             beep();
                         }
 
-                    loginfo(mysqllog, "Possible Interesting Number", "", "");
-                    sendmodem("\r");
+                    LogInfo("Possible Interesting Number", "", "");
+                    SendModem("\r");
                     NCURSES_Status("Possible Interesting Number");
                     tonesilence++;
-                    nright(5, tonesilence);
+                    NCURSES_Right(5, tonesilence);
                     attron( COLOR_PAIR(13) | A_STANDOUT );
                     NCURSES_Plot(dialnum, row, col);
                     attroff( COLOR_PAIR(13) | A_STANDOUT );
-                    rowcolcheck();
+                    RowColCheck();
                     sleep(conredial);
 
                     scanbuf[0] = '\0';
                     tmpscanbuf[0] = '\0';
                     recordbuf[0] = '\0';
 
-                    getnum(dialtype, mysqllog, tonedetect, predial, postdial);
+                    GetNumber(dialtype, tonedetect, predial, postdial);
                     NCURSES_Status(sendstring);
-                    sendmodem(sendstring);
+                    SendModem(sendstring);
                     waitin=0;
                     ring=0;
                 }
@@ -1968,25 +2015,25 @@ int main(int argc,  char **argv)
             if (remotering != 0 && ring >= remotering )
                 {
                     NCURSES_Status("Max. Rings Received");
-                    sendmodem("\r");
+                    SendModem("\r");
                     waddch(modemstatus, 10);
                     timeout++;   /* Should make this it's own item one day */
-                    nright(6,timeout);
+                    NCURSES_Right(6,timeout);
                     waitin=0;
                     ring=0;
                     sleep(redial);
                     attron( COLOR_PAIR(10) | A_NORMAL );
                     NCURSES_Plot(dialnum, row, col);
                     attroff( COLOR_PAIR(10) | A_NORMAL );
-                    rowcolcheck();
-                    getnum(dialtype, mysqllog, tonedetect, predial, postdial);
+                    RowColCheck();
+                    GetNumber(dialtype, tonedetect, predial, postdial);
 
                     scanbuf[0] = '\0';
                     tmpscanbuf[0] = '\0';
                     recordbuf[0] = '\0';
 
                     NCURSES_Status(sendstring);
-                    sendmodem(sendstring);
+                    SendModem(sendstring);
                 }
 
             /* We waited,  and nothing happened.  */
@@ -1996,18 +2043,18 @@ int main(int argc,  char **argv)
                     NCURSES_Status("Timeout.");
                     if (logtype==1)
                         {
-                            loginfo(mysqllog, "Timeout", "", "");
+                            LogInfo("Timeout", "", "");
                         }
 
                     timeout++;
 
-                    sendmodem("\r");
+                    SendModem("\r");
 
-                    nright(6,timeout);
+                    NCURSES_Right(6,timeout);
                     attron( COLOR_PAIR(10) | A_NORMAL );
                     NCURSES_Plot(dialnum, row, col);
                     attroff( COLOR_PAIR(10) | A_NORMAL );
-                    rowcolcheck();
+                    RowColCheck();
                     waddch(modemstatus, 10);
                     waitin=0;
                     sleep(conredial);
@@ -2016,9 +2063,9 @@ int main(int argc,  char **argv)
                     tmpscanbuf[0] = '\0';
                     recordbuf[0] = '\0';
 
-                    getnum(dialtype, mysqllog, tonedetect, predial, postdial);
+                    GetNumber(dialtype, tonedetect, predial, postdial);
                     NCURSES_Status(sendstring);
-                    sendmodem(sendstring);
+                    SendModem(sendstring);
                 }
 
 
@@ -2035,7 +2082,7 @@ int main(int argc,  char **argv)
                     delwin(modemstatus);
                     modemstatus = newwin(6, maxcol-5, maxrow-7,2);
                     wrefresh(modemstatus);
-                    drawinfo(baudrate,bits,parity,tty,numbersfile,predial,postdial,logtype,
+                    DrawInfo(baudrate,bits,parity,tty,numbersfile,predial,postdial,logtype,
                              connect,nocarrier,busy,voice,tonesilence,dialtype,timeout);
                 }
 
@@ -2050,16 +2097,16 @@ int main(int argc,  char **argv)
             if (key != ERR)
                 {
 
-                    if ( key == (int)'a' )
+                    if ( key == (int)'a' || key == 27 )
                         {
                             dialnum=0;
-                            loginfo(0, "User Abort", "", "");
-                            sendmodem("\r");
+                            LogInfo("User Abort", "", "");
+                            SendModem("\r");
                             NCURSES_Status("User Abort!");
-                            ninfo("User Abort!",2);
+                            NCURSES_Info("User Abort!",WARN);
                             clear();
                             endwin();
-                            exitscreen(connect, nocarrier, voice, busy, tonesilence, mark, skip);
+                            ExitScreen(connect, nocarrier, voice, busy, tonesilence, mark, skip);
                             fflush(stderr);
                             fclose(stderr);
                         }
@@ -2069,12 +2116,12 @@ int main(int argc,  char **argv)
                             if ( beepflag == 0 )
                                 {
                                     beepflag=1;
-                                    ninfo("Beep Enabled", 2);
+                                    NCURSES_Info("Beep Enabled", WARN);
                                 }
                             else
                                 {
                                     beepflag=0;
-                                    ninfo("Beep Disabled",2);
+                                    NCURSES_Info("Beep Disabled",WARN);
                                 }
                             touchwin(modemstatus);
                             wrefresh(modemstatus);
@@ -2084,7 +2131,7 @@ int main(int argc,  char **argv)
                         {
                             NCURSES_Status("Skipping number....");
 
-                            sendmodem("\r");
+                            SendModem("\r");
 
                             waitin=0;
                             connectflag=0;   /* In case we are connected */
@@ -2092,26 +2139,26 @@ int main(int argc,  char **argv)
                             waddch(modemstatus, 10);  /* Go to next line */
                             if (logtype==1)
                                 {
-                                    loginfo(mysqllog, "Number Skipped", "", "");
+                                    LogInfo("Number Skipped", "", "");
                                 }
 
                             attron( COLOR_PAIR(16) | A_NORMAL );
                             NCURSES_Plot(dialnum, row, col);
                             attroff( COLOR_PAIR(16) | A_NORMAL );
-                            rowcolcheck();
+                            RowColCheck();
 
                             scanbuf[0] = '\0';
                             tmpscanbuf[0] = '\0';
 
                             if (dtrinit == 1)
                                 {
-                                    dtrreinit(modeminit, volume);
+                                    DTRReInit(modeminit, volume);
                                 }
 
                             sleep(redial);
-                            getnum(dialtype, mysqllog, tonedetect, predial, postdial);
+                            GetNumber(dialtype, tonedetect, predial, postdial);
                             NCURSES_Status(sendstring);
-                            sendmodem(sendstring);
+                            SendModem(sendstring);
                         }
 
                     if ( key == (int)'m' ||
@@ -2157,25 +2204,25 @@ int main(int argc,  char **argv)
                                 {
                                     if (plushang)
                                         {
-                                            plushangup(plushangupsleep);
+                                            PlusHangup(PlusHangupsleep);
                                         }
                                     else
                                         {
                                             m_dtrtoggle(portfd,dtrsec);
-                                            if (dtrinit == 1 ) dtrreinit(modeminit, volume);
+                                            if (dtrinit == 1 ) DTRReInit(modeminit, volume);
                                         }
                                 }
 
-                            sendmodem("\r");
+                            SendModem("\r");
 
                             waitin=0;
                             mark++;
-                            ninfo(tmp,2);
-                            loginfo(mysqllog, "MARK", tmp, "");
+                            NCURSES_Info(tmp,WARN);
+                            LogInfo("MARK", tmp, "");
                             attron( COLOR_PAIR(11) | A_STANDOUT );
                             NCURSES_Plot(dialnum, row, col);
                             attroff( COLOR_PAIR(11) | A_STANDOUT );
-                            rowcolcheck();
+                            RowColCheck();
 
                             touchwin(modemstatus);
                             wrefresh(modemstatus);
@@ -2185,16 +2232,16 @@ int main(int argc,  char **argv)
                             wrefresh(modemstatus);
 
                             sleep(redial);
-                            getnum(dialtype, mysqllog, tonedetect, predial, postdial);
+                            GetNumber(dialtype, tonedetect, predial, postdial);
                             NCURSES_Status(sendstring);
 
-                            sendmodem(sendstring);
+                            SendModem(sendstring);
                         }
 
 
                     if ( key == (int)'0' )
                         {
-                            ninfo("Modem speaker off",2);
+                            NCURSES_Info("Modem speaker off",WARN);
                             NCURSES_Status("Sending ATM0 Next Pass....");
                             volume=0;
                             touchwin(modemstatus);    /* touchwin the terminal window */
@@ -2204,7 +2251,7 @@ int main(int argc,  char **argv)
 
                     if ( key == (int)'1' )
                         {
-                            ninfo("Modem speaker volume 1", 2);
+                            NCURSES_Info("Modem speaker volume 1", WARN);
                             NCURSES_Status("Sending ATM1L1 Next Pass....");
                             volume=1;
                             touchwin(modemstatus);
@@ -2214,7 +2261,7 @@ int main(int argc,  char **argv)
 
                     if ( key == (int)'2' )
                         {
-                            ninfo("Modem speaker volume 2", 2);
+                            NCURSES_Info("Modem speaker volume 2", WARN);
                             NCURSES_Status("Sending ATM1L2 Next Pass....");
                             volume=2;
                             touchwin(modemstatus);
@@ -2224,7 +2271,7 @@ int main(int argc,  char **argv)
 
                     if ( key == (int)'3' )
                         {
-                            ninfo("Modem speaker volume 3/Max.", 2);
+                            NCURSES_Info("Modem speaker volume 3/Max.", WARN);
                             NCURSES_Status("Sending ATM1L3 Next Pass....");
                             volume=3;
                             touchwin(modemstatus);
@@ -2252,25 +2299,27 @@ int main(int argc,  char **argv)
                                 {
                                     if (plushang == 1 )
                                         {
-                                            plushangup(plushangupsleep);
+                                            PlusHangup(PlusHangupsleep);
                                         }
                                     else
                                         {
                                             m_dtrtoggle(portfd,dtrsec);
-                                            if (dtrinit == 1 ) dtrreinit(modeminit, volume);
+                                            if (dtrinit == 1 ) DTRReInit(modeminit, volume);
                                         }
                                 }
 
-                            sendmodem("\r");
+                            SendModem("\r");
 
                             waitin=0;
                             mark++;
-                            strlcpy(tmp, nsimpleform(), sizeof(tmp));
-                            loginfo(mysqllog, "MARK", tmp, "");
+
+			    NCURSES_SimpleForm(tmp, sizeof(tmp));
+
+                            LogInfo("MARK", tmp, "");
                             touchwin(modemstatus);
                             wrefresh(modemstatus);
 
-                            ninfo("Marked (Custom Input)", 2);
+                            NCURSES_Info("Marked (Custom Input)", WARN);
 
                             touchwin(modemstatus);
                             wrefresh(modemstatus);
@@ -2278,15 +2327,15 @@ int main(int argc,  char **argv)
                             attron( COLOR_PAIR(11) | A_STANDOUT );
                             NCURSES_Plot(dialnum, row, col);
                             attroff( COLOR_PAIR(11) | A_STANDOUT );
-                            rowcolcheck();
+                            RowColCheck();
 
                             touchwin(modemstatus);
                             wrefresh(modemstatus);
 
-                            getnum(dialtype, mysqllog, tonedetect, predial, postdial);
+                            GetNumber(dialtype, tonedetect, predial, postdial);
                             NCURSES_Status(sendstring);
                             waddch(modemstatus, 10);
-                            sendmodem(sendstring);
+                            SendModem(sendstring);
                         }
 
                     if ( key == (int)'s' )
@@ -2299,7 +2348,7 @@ int main(int argc,  char **argv)
                                 {
                                     if ((saveloadstate = fopen(tmp, "w")) == NULL)
                                         {
-                                            ninfo("Cant save state",1);
+                                            NCURSES_Info("Cant save state",ERROR);
                                             touchwin(modemstatus);
                                             waddch(modemstatus,10);
                                             wrefresh(modemstatus);
@@ -2336,7 +2385,7 @@ int main(int argc,  char **argv)
                                     snprintf(tmp2, sizeof(tmp2), "State saved to %s", tmp);
                                     touchwin(modemstatus);
                                     wrefresh(modemstatus);
-                                    ninfo(tmp2, 2);
+                                    NCURSES_Info(tmp2, WARN);
                                     tmp[0] = '\0';
                                     touchwin(modemstatus);
                                     wrefresh(modemstatus);
@@ -2345,7 +2394,7 @@ int main(int argc,  char **argv)
                             else
                                 {
 
-                                    ninfo("Nothing saved.  Scan Continued.", 2);
+                                    NCURSES_Info("Nothing saved.  Scan Continued.", WARN);
                                     touchwin(modemstatus);
                                     wrefresh(modemstatus);
                                 }
@@ -2362,7 +2411,7 @@ int main(int argc,  char **argv)
 
                                     while ((saveloadstate = fopen(tmp, "w")) == NULL)
                                         {
-                                            ninfo("Can't save state file, try again", 1);
+                                            NCURSES_Info("Can't save state file, try again", ERROR);
                                             touchwin(modemstatus);
                                             wrefresh(modemstatus);
                                             NCURSES_Filename(tmp, sizeof(tmp));
@@ -2400,16 +2449,16 @@ int main(int argc,  char **argv)
                                     wrefresh(modemstatus);
 
                                     snprintf(tmp2, sizeof(tmp2), "State save to %s", tmp);
-                                    ninfo(tmp2, 2);
+                                    NCURSES_Info(tmp2, WARN);
                                     touchwin(modemstatus);
                                     waddch(modemstatus,10);
                                     wrefresh(modemstatus);
-                                    ninfo("Exiting iWar!  Bye....",1);
+                                    NCURSES_Info("Exiting iWar!  Bye....",WARN);
                                     touchwin(modemstatus);
                                     waddch(modemstatus,10);
                                     wrefresh(modemstatus);
                                     endwin();
-                                    exitscreen(connect, nocarrier, voice, busy, tonesilence, mark, skip);
+                                    ExitScreen(connect, nocarrier, voice, busy, tonesilence, mark, skip);
                                     fflush(stderr);
                                     fclose(stderr);
                                     exit(0);
@@ -2417,7 +2466,7 @@ int main(int argc,  char **argv)
                             else
                                 {
 
-                                    ninfo("Nothing saved.  Scan Continued.", 2);
+                                    NCURSES_Info("Nothing saved.  Scan Continued.", WARN);
                                     touchwin(modemstatus);
                                     wrefresh(modemstatus);
                                 }
@@ -2430,16 +2479,16 @@ int main(int argc,  char **argv)
                                 {
                                     if (plushang == 1 )
                                         {
-                                            plushangup(plushangupsleep);
+                                            PlusHangup(PlusHangupsleep);
                                         }
                                     else
                                         {
                                             m_dtrtoggle(portfd,dtrsec);
-                                            if (dtrinit == 1 ) dtrreinit(modeminit, volume);
+                                            if (dtrinit == 1 ) DTRReInit(modeminit, volume);
                                         }
                                 }
 
-                            sendmodem("\r");
+                            SendModem("\r");
 
                             if ( key == (int)'p')
                                 {
@@ -2448,7 +2497,7 @@ int main(int argc,  char **argv)
 
                             if ( key == (int)'[')
                                 {
-                                    loginfo(mysqllog, "Paused and marked as interesting", "", recordbuf);
+                                    LogInfo("Paused and marked as interesting", "", recordbuf);
                                     NCURSES_Pause(1);
                                 }
 
@@ -2456,9 +2505,9 @@ int main(int argc,  char **argv)
                             touchwin(modemstatus);
                             waddch(modemstatus,10);
                             wrefresh(modemstatus);
-                            getnum(dialtype, mysqllog, tonedetect, predial, postdial);
+                            GetNumber(dialtype, tonedetect, predial, postdial);
                             NCURSES_Status(sendstring);
-                            sendmodem(sendstring);
+                            SendModem(sendstring);
                         }
                 }
         }
