@@ -34,6 +34,8 @@
 #include <sys/types.h>
 #include <limits.h>
 #include <getopt.h>
+#include <stdbool.h>
+#include <inttypes.h>
 
 #include "iserial.h"
 #include "version.h"
@@ -50,17 +52,18 @@ FILE *userloadfile;
 
 char sendstring[128] = { 0 };
 char modemqueue[128] = { 0 };
-char fileout[MAXPATH]="iwar.log";
+
+char fileout[MAXPATH] = DEFAULT_LOGFILE;
 
 char tmp[128] = { 0 };
 char tmp2[128] = { 0 };
 char *tmp3 = NULL;
 char *tmp4 = NULL;
 
-long long dialnum;
-long long ss;
-long long es;
-long long num[9999];
+uint64_t dialnum;
+uint64_t ss;
+uint64_t es;
+uint64_t num[9999];
 
 int savestate=0;
 int savestatecount=0;
@@ -73,12 +76,12 @@ int col=2;
 /* Blacklist */
 
 int blacklistcount;
-long long blacklistnum[1000];
+uint64_t blacklistnum[1000];
 
 /* Pre-generated user list */
 
 int userlistcount;
-long long userlistnum[9999];
+uint64_t userlistnum[9999];
 
 /***************************************************************************/
 /*                         General Help/Usage                              */
@@ -221,7 +224,8 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
     /* We've loaded the numbers for a user generated file... */
     /*********************************************************/
 
-    int flag=1, k;
+    bool flag=true;
+    int k = 0;
 
     if (userlistcount > 0)
         {
@@ -239,7 +243,7 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
 
             /* Blacklist check */
 
-            while (flag != 0)
+            while (flag != false)
                 {
                     for (k=0; k<blacklistcount; k++)
                         {
@@ -254,12 +258,12 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
                                     sleep(1);
                                     j++;
                                     dialnum=userlistnum[j];
-                                    flag=1;
+                                    flag=true;
                                     break;
                                 }
                             else
                                 {
-                                    flag=0;
+                                    flag=false;
                                 }
                         }
                 }
@@ -302,7 +306,7 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
 
             /* Blacklist check */
 
-            while (flag != 0)
+            while (flag != false)
                 {
                     for (k=0; k<blacklistcount; k++)
                         {
@@ -317,12 +321,12 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
                                     sleep(1);
                                     ss++;
                                     dialnum=ss;
-                                    flag=1;
+                                    flag=true;
                                     break;
                                 }
                             else
                                 {
-                                    flag=0;
+                                    flag=false;
                                 }
                         }
                 }
@@ -330,9 +334,9 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
             /* If this is loaded from a previous state file, make sure we haven't
                already dialed the number previously */
 
-            flag=1;
+            flag=true;
 
-            while (savestate == 1 && flag != 0)
+            while (savestate == 1 && flag != false)
                 {
                     /* k=3 because 0-2 are for dialtype, start scan and end scan */
 
@@ -346,7 +350,7 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
                                 }
                             else
                                 {
-                                    flag=0;
+                                    flag=false;
                                 }
                         }
                 }
@@ -392,7 +396,8 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
     while (j < es-ss+k+1 )
         {
 
-            dialnum = (long long)((double)rand() / ((double)RAND_MAX + 1) * es+1);
+//            dialnum = (long long)((double)rand() / ((double)RAND_MAX + 1) * es+1);
+	   dialnum = GetRandNumber(ss, es);
 
             if (dialnum >= ss )   /* Usable number? */
                 {
@@ -400,11 +405,23 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
                     if (savestate == 0)
                         {
 
-                            for (i=0; i < j; i++) if (num[i] == dialnum) flag=1;
+                            for (i=0; i < j; i++) 
+				    {
+					    if (num[i] == dialnum) 
+						    {
+							    flag=true;
+						    }
+					}
                         }
                     else
                         {
-                            for (i=3; i < j; i++) if (num[i] == dialnum) flag=1;
+                            for (i=3; i < j; i++) 
+				    {
+					    if (num[i] == dialnum) 
+						    {
+							    flag=true;
+						     }
+					}
                         }
 
                     /* Check blacklist for number */
@@ -422,17 +439,18 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
                                     sleep(1);
                                     num[j] = dialnum;
                                     j++;
-                                    flag=1;
+                                    flag=true;
                                     break;
                                 }
                         }
 
 
-                    if (flag==0)
+                    if ( flag == false )
                         {
                             num[j] = dialnum;
                             j++;
-                            flag=0;
+                            flag=false;
+
                             if (tonedetect == 1 )              /* Tone location */
                                 {
                                     snprintf(sendstring, sizeof(sendstring), "ATDT%s%lldW;\r", predial, dialnum);
@@ -446,7 +464,8 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
                             NCURSES_Count(es-ss-j+k+1);  /* k is for saved state or not */
                             return 0;
                         }
-                    flag=0;
+
+                    flag=false;
                 }
         }   /* End while */
 
@@ -715,6 +734,22 @@ void DrawInfo( const char *baudrate,
 
 }
 
+/*********************************************************************/
+/* GetRandNumner - Returns a large random number between two values. */
+/* This is used when determining the next random number.  It is      */
+/* because we want to be able to deal with 1+NPA+NXX-XXXX type of    */
+/* ranges.                                                           */
+/*********************************************************************/
+
+uint64_t GetRandNumber (uint64_t begin, uint64_t end) 
+   {
+    uint64_t range = (end - begin) + 1;
+    uint64_t limit = ((uint64_t)RAND_MAX + 1) - (((uint64_t)RAND_MAX + 1) % range);
+    uint64_t randVal = rand();
+    while (randVal >= limit) randVal = rand();
+    return (randVal % range) + begin;
+}
+
 /**********************************************************************/
 /* Welcome to main().  Where the magic and fun takes place            */
 /**********************************************************************/
@@ -743,11 +778,11 @@ int main(int argc,  char **argv)
     int bannercount=0;
     int conredial=5;
     int redial=3;
-    int plushang=0;
+    bool plushang=false;
     int sendcr=0;
     int record=1;		     /* Record remove system banners */
     int dtrsec=0;
-    char recordbuf[10240] = { 0 };    /* Record buffer */
+    char recordbuf[RECORD_BUFFER] = { 0 };    /* Record buffer */
 
     int key;                     /* move tom main */
     int bitcount=0;
@@ -773,10 +808,10 @@ int main(int argc,  char **argv)
 
     /* Setup some default port settings */
 
-    char tty[20]		= "/dev/ttyUSB0";
-    char baudrate[7]		= "1200";
-    char parity[2]		= "N";
-    char bits[2]		= "8";
+    char tty[20]		= DEFAULT_DEVICE;
+    char baudrate[7]		= DEFAULT_SPEED;
+    char parity[2]		= DEFAULT_PARITY;
+    char bits[2]		= DEFAULT_DATABITS;
     char predial[41] = { 0 };
     char postdial[41] = { 0 };
 
@@ -806,14 +841,16 @@ int main(int argc,  char **argv)
     int logtype=0;
     int ring=0;
     int remotering=0;
-    int bannercheck=1;
-    int beepflag=0;
+
+    int bannercheck=true;
+
+    bool beepflag=false;
     char bannerbuf[1024] = { 0 };
     char iwarbuf[1024] = { 0 };
-    int connectflag=0;
+    bool connectflag=false;
 
-    int hwhandshake=1;
-    int swhandshake=0;
+    bool hwhandshake=true;
+    bool swhandshake=false;
 
     char tmpscanrange[31] = { 0 };
     char startscan[20] = { 0 };
@@ -949,8 +986,15 @@ int main(int argc,  char **argv)
                     conredial=atoi(tmp);
                 }
 
-            if (!strcmp(iwar_option, "beep")) beepflag=1;
-            if (!strcmp(iwar_option, "PlusHangup")) plushang=1;
+            if (!strcmp(iwar_option, "beep")) 
+	    {
+		    beepflag=true;
+		    }
+
+            if (!strcmp(iwar_option, "PlusHangup")) 
+		    {
+			    plushang=true;
+			    }
 
             if (!strcmp(iwar_option, "PlusHangupsleep"))
                 {
@@ -1095,8 +1139,8 @@ int main(int argc,  char **argv)
                     break;
 
                 case 'c':
-                    swhandshake=1;
-                    hwhandshake=0;
+                    swhandshake=true;
+                    hwhandshake=false;
                     break;
 
                 case 'C':
@@ -1149,7 +1193,7 @@ int main(int argc,  char **argv)
                     break;
 
                 case 'b':
-                    bannercheck=0;
+                    bannercheck=false;
                     break;
 
                 case 'o':
@@ -1206,12 +1250,17 @@ int main(int argc,  char **argv)
                     exit(1);
                 }
 
+	   
+	  
+	   /* 
             if ( es > RAND_MAX && dialtype == 0)
                 {
                     fprintf(stderr, "\nERROR: Largest random number is %d.  Try using the predial string.\n\n", RAND_MAX);
                     Usage();
                     exit(1);
                 }
+		*/
+		
 
             if ( es-ss > 100 )
                 {
@@ -1226,7 +1275,7 @@ int main(int argc,  char **argv)
     /**********************************/
 
     printf("===============================================================================\n");
-    if (bannercheck==1)
+    if ( bannercheck == true )
         {
             if ((banner = fopen(bannerfile, "r")) == NULL)
                 {
@@ -1543,14 +1592,23 @@ int main(int argc,  char **argv)
             if (select(portfd+1, &fds, NULL, NULL, &tv) > 0 )
                 {
                     buflen = read(portfd, buf, 1);
-                    if (buflen == -1) CloseTTY(-1);
+		    
+                    if (buflen == -1) 
+			    {
+				    CloseTTY(-1);
+			    }
+
                     waitin=0;              /* Got data, reset out nodata counter */
 
                     for (i=0; i<strlen(buf); i++)
                         {
                             snprintf(tmpscanbuf, sizeof(tmpscanbuf), "%c", buf[i]);
                             ch=buf[i];
-                            if (record == 1) strlcat(recordbuf, tmpscanbuf, sizeof(recordbuf));
+
+                            if (record == 1) 
+				    {
+					    strlcat(recordbuf, tmpscanbuf, sizeof(recordbuf));
+					    }
 
                             if (ch == 10)
                                 {
@@ -1578,13 +1636,16 @@ int main(int argc,  char **argv)
                             /* if connected,  count the bytes */
 
 
-                            if (connectflag==1 && bannercheck == 1 ) bitcount++;
+                            if ( connectflag == true && bannercheck == true ) 
+			    {
+				    bitcount++;
+			    }
 
                             if (bitcount > bannermaxcount)
                                 {
                                     NCURSES_Status("Max banner data received");
                                     LogInfo("CONNECT", "Not Identified (Max. banner data received)", recordbuf);
-                                    if ( plushang == 1)
+                                    if ( plushang == true)
                                         {
                                             PlusHangup(PlusHangupsleep);
                                         }
@@ -1595,7 +1656,7 @@ int main(int argc,  char **argv)
                                         }
 
 
-                                    connectflag=0;
+                                    connectflag=false;
                                     sleep(conredial);
 
                                     recordbuf[0] = '\0';
@@ -1632,19 +1693,25 @@ int main(int argc,  char **argv)
                             if (!strcmp(scanbuf, "CONNECT"))
                                 {
                                     NCURSES_Status("CONNECTED!");
-                                    if ( beepflag == 1 ) beep();
+
+                                    if ( beepflag == true )
+					   {
+						   beep();
+						   	}
+
                                     attron( COLOR_PAIR(11) | A_BLINK );
                                     NCURSES_Plot(dialnum, row, col);
                                     attroff( COLOR_PAIR(11) | A_BLINK );
                                     RowColCheck();
                                     connect++;
                                     NCURSES_Right(1, connect);
-                                    if (bannercheck == 0 && record != 1)
+
+                                    if ( bannercheck == false && record != 1)
                                         {
                                             LogInfo("CONNECT", "", recordbuf);
                                             recordbuf[0] = '\0';
 
-                                            if ( plushang == 1)
+                                            if ( plushang == true )
                                                 {
                                                     PlusHangup(PlusHangupsleep);
                                                 }
@@ -1654,7 +1721,7 @@ int main(int argc,  char **argv)
                                                     if (dtrinit == 1) DTRReInit(modeminit, volume);
                                                 }
 
-                                            connectflag=0;
+                                            connectflag=false;
                                             sleep(conredial);
 
                                             scanbuf[0] = '\0';
@@ -1665,23 +1732,23 @@ int main(int argc,  char **argv)
                                         }
                                     else
                                         {
-                                            connectflag=1;
+                                            connectflag=true;
                                         }
                                 }
 
                             if ( ( !strcmp(scanbuf, "NO CARRIER") && waitin > 5 ) ||
                                   ( !strcmp(scanbuf, "NO ANSWER")  && waitin > 5 ) ||
-                                  ( !strcmp(scanbuf, "NO CARRIER") && connectflag == 1 ) ||
-                                  ( !strcmp(scanbuf, "NO ANSWER")  && connectflag == 1 ) )
+                                  ( !strcmp(scanbuf, "NO CARRIER") && connectflag == true ) ||
+                                  ( !strcmp(scanbuf, "NO ANSWER")  && connectflag == true ) )
 
                                 {
 
                                     sendcr=0;
                                     ring=0;
-                                    if (connectflag==1)   /* We'll get a NO CARRIER once
+                                    if ( connectflag == true )   /* We'll get a NO CARRIER once
 		                              a connection drops */
                                         {
-                                            connectflag=0;
+                                            connectflag = false;
                                             LogInfo("CONNECT", "Not Identified (disconnected)", recordbuf);
                                             recordbuf[0] = '\0';
                                             NCURSES_Status("Connection Dropped.");
@@ -1716,16 +1783,6 @@ int main(int argc,  char **argv)
                                             NCURSES_Status(sendstring);
                                             SendModem(sendstring);
                                         }
-
-                                    if (connectflag==2)
-                                        {
-
-                                            scanbuf[0] = '\0';
-                                            tmpscanbuf[0] = '\0';
-                                            recordbuf[0] = '\0';
-
-                                            connectflag=0;
-                                        }
                                 }
 
                             /* Count the number of RINGING it silence detections */
@@ -1752,7 +1809,12 @@ int main(int argc,  char **argv)
 
                             if (!strcmp(scanbuf, "OK") && tonedetect==1 && ok == 0)
                                 {
-                                    if ( beepflag == 1) beep();
+                                    if ( beepflag == true) 
+					    {
+						    beep();
+						    }
+
+
                                     LogInfo("TONE", "", "");
                                     tonesilence++;
                                     NCURSES_Right(5, tonesilence);
@@ -1792,6 +1854,7 @@ int main(int argc,  char **argv)
                                     RowColCheck();
                                     busy++;
                                     NCURSES_Right(3, busy);
+
                                     if (logtype==1)
                                         {
                                             LogInfo("BUSY", "", "");
@@ -1840,6 +1903,7 @@ int main(int argc,  char **argv)
                                     RowColCheck();
                                     voice++;
                                     NCURSES_Right(4, voice);
+
                                     if (logtype==1)
                                         {
                                             LogInfo("VOICE", "", "");
@@ -1871,14 +1935,11 @@ int main(int argc,  char **argv)
                         }
                 }
 
-            /* Allows user to tail -f IAX2 debug file in real time.  Other wise,
-               you have to wait till the buffer is full or you exit */
-
             /* Deal with connected/carriers and identification.  Watch the bannercount */
             /* make sure we don't go over the limit.  Also keep a eye out for the      */
             /* system type.   We do all sorts of stuff here ........                   */
 
-            if (connectflag==1)
+            if (connectflag == true )
                 {
                     for (b=0; b<bannercount; b++)
                         {
@@ -1887,12 +1948,14 @@ int main(int argc,  char **argv)
                                     LogInfo("CONNECT", bannercfg[b].os_type, recordbuf);
                                     recordbuf[0] = '\0';
                                     NCURSES_Status("System Identified!");
-                                    if ( beepflag == 1 )
+
+                                    if ( beepflag == true )
                                         {
                                             beep();
                                             beep();
                                         }
-                                    if ( plushang == 1)
+
+                                    if ( plushang == true )
                                         {
                                             PlusHangup(PlusHangupsleep);
                                         }
@@ -1910,7 +1973,7 @@ int main(int argc,  char **argv)
                                     GetNumber(dialtype, tonedetect, predial, postdial);
                                     NCURSES_Status(sendstring);
                                     SendModem(sendstring);
-                                    connectflag=0;
+                                    connectflag=false;
                                     bitcount=0;
                                 }
                         }
@@ -1924,14 +1987,15 @@ int main(int argc,  char **argv)
                                     bitcount=0;
                                     sendcr=1;		/* Avoid re-sending CR's */
                                 }
+
                             NCURSES_Status("Sent CRs [Waiting for response]");
                         }
 
                     /* Timer timed out.  We stopped receiving data from the remote system */
 
-                    if (waitin == bannertimeout)
+                    if ( waitin == bannertimeout )
                         {
-                            if (bannercheck == 1)
+                            if ( bannercheck == true )
                                 {
                                     LogInfo("CONNECT", "Not Identified (stalled)", recordbuf);
                                 }
@@ -1940,7 +2004,7 @@ int main(int argc,  char **argv)
                                     LogInfo("CONNECT", "Banner detection disabled", recordbuf);
                                 }
 
-                            if (bannercheck == 1)
+                            if ( bannercheck == true )
                                 {
                                     NCURSES_Status("Data Trans. Stalled.");
                                 }
@@ -1949,7 +2013,7 @@ int main(int argc,  char **argv)
                                     NCURSES_Status("Banner recorded,  hanging up...");
                                 }
 
-                            if ( plushang == 1)
+                            if ( plushang == true )
                                 {
                                     PlusHangup(PlusHangupsleep);
                                 }
@@ -1965,7 +2029,7 @@ int main(int argc,  char **argv)
                             tmpscanbuf[0] = '\0';
                             recordbuf[0] = '\0';
 
-                            connectflag=0;
+                            connectflag=false;
                             GetNumber(dialtype, tonedetect, predial, postdial);
                             NCURSES_Status(sendstring);
                             SendModem(sendstring);
@@ -1982,7 +2046,7 @@ int main(int argc,  char **argv)
 
             if (waitin == ringtimeout && ring < remotering && ring != 0)
                 {
-                    if ( beepflag == 1)
+                    if ( beepflag == true)
                         {
                             beep();
                         }
@@ -2041,6 +2105,7 @@ int main(int argc,  char **argv)
             if (waitin == serialtimeout)
                 {
                     NCURSES_Status("Timeout.");
+
                     if (logtype==1)
                         {
                             LogInfo("Timeout", "", "");
@@ -2082,6 +2147,7 @@ int main(int argc,  char **argv)
                     delwin(modemstatus);
                     modemstatus = newwin(6, maxcol-5, maxrow-7,2);
                     wrefresh(modemstatus);
+
                     DrawInfo(baudrate,bits,parity,tty,numbersfile,predial,postdial,logtype,
                              connect,nocarrier,busy,voice,tonesilence,dialtype,timeout);
                 }
@@ -2113,14 +2179,14 @@ int main(int argc,  char **argv)
 
                     if ( key == (int)'b' )
                         {
-                            if ( beepflag == 0 )
+                            if ( beepflag == false )
                                 {
-                                    beepflag=1;
+                                    beepflag = true;
                                     NCURSES_Info("Beep Enabled", WARN);
                                 }
                             else
                                 {
-                                    beepflag=0;
+                                    beepflag = false;
                                     NCURSES_Info("Beep Disabled",WARN);
                                 }
                             touchwin(modemstatus);
@@ -2134,9 +2200,10 @@ int main(int argc,  char **argv)
                             SendModem("\r");
 
                             waitin=0;
-                            connectflag=0;   /* In case we are connected */
+                            connectflag=false;   /* In case we are connected */
                             skip++;
                             waddch(modemstatus, 10);  /* Go to next line */
+
                             if (logtype==1)
                                 {
                                     LogInfo("Number Skipped", "", "");
@@ -2200,16 +2267,20 @@ int main(int argc,  char **argv)
                                     strlcpy(tmp2, "Marked - PBX", sizeof(tmp2));
                                 }
 
-                            if (connectflag == 1)
+                            if ( connectflag == true )
                                 {
-                                    if (plushang)
+                                    if ( plushang == true )
                                         {
                                             PlusHangup(PlusHangupsleep);
                                         }
                                     else
                                         {
                                             m_dtrtoggle(portfd,dtrsec);
-                                            if (dtrinit == 1 ) DTRReInit(modeminit, volume);
+
+                                            if (dtrinit == 1 ) 
+						    {
+							    DTRReInit(modeminit, volume);
+							    	}
                                         }
                                 }
 
@@ -2295,9 +2366,9 @@ int main(int argc,  char **argv)
 
                     if ( key == (int)'k' )
                         {
-                            if (connectflag == 1)
+                            if (connectflag == true )
                                 {
-                                    if (plushang == 1 )
+                                    if (plushang == true )
                                         {
                                             PlusHangup(PlusHangupsleep);
                                         }
@@ -2377,10 +2448,12 @@ int main(int argc,  char **argv)
                                         {
                                             i=0;
                                         }
+
                                     for (b=i; b<j; b++)
                                         {
                                             fprintf(saveloadstate, "%lld\n", num[b]);
                                         }
+
                                     fclose(saveloadstate);
                                     snprintf(tmp2, sizeof(tmp2), "State saved to %s", tmp);
                                     touchwin(modemstatus);
@@ -2439,10 +2512,12 @@ int main(int argc,  char **argv)
                                         {
                                             i=0;
                                         }
+
                                     for (b=i; b<j; b++)
                                         {
                                             fprintf(saveloadstate, "%lld\n", num[b]);
                                         }
+
                                     fclose(saveloadstate);
                                     touchwin(modemstatus);
                                     waddch(modemstatus,10);
@@ -2475,9 +2550,9 @@ int main(int argc,  char **argv)
 
                     if ( key == (int)'p' || key == (int)'[' )
                         {
-                            if (connectflag == 1)
+                            if ( connectflag == true )
                                 {
-                                    if (plushang == 1 )
+                                    if (plushang == true )
                                         {
                                             PlusHangup(PlusHangupsleep);
                                         }

@@ -205,11 +205,12 @@ void NCURSES_Plot(long long dialnum, int row,  int col)
 
 void NCURSES_Right(int type, int value)
 {
+
     int maxcol = 0;
     int maxrow = 0;
     int rrow = 0; 
 
-    getmaxyx(stdscr,maxrow, maxcol);
+    getmaxyx(stdscr,maxrow,maxcol);
 
     if (type==1) rrow=1;    /* CONNECT */
     if (type==2) rrow=2;    /* NO CARRIER */
@@ -420,7 +421,6 @@ void NCURSES_SimpleForm(char *str, size_t size)
     int i, b;
     char buf[255] = { 0 };
     char tmp[255] = { 0 };
-    char *bufpoint;
 
     getmaxyx(stdscr, maxrow, maxcol);
 

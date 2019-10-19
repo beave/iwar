@@ -39,5 +39,6 @@ void PlusHangup(int PlusHangupsleep);
 void ExitScreen(int connect, int nocarrier, int voice, int busy, int tonesilence,  int mark, int skip);
 void LogInfo(const char *response, const char *ident, const char *recordbuf );
 int GetNumber(int dialtype, int tonedetect, const char *predial, const char *postdial);
+uint64_t GetRandNumber (uint64_t begin, uint64_t end);
 
 
