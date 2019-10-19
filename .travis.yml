@@ -40,6 +40,4 @@ script:
         ./configure || { echo "!!!! ERROR !!!!"; cat config.log && false; }
     fi
   - make
-  - cd tools
-  - make
 
