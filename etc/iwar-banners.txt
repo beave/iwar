@@ -149,6 +149,8 @@ ROLM CBX|Seimens ROLM CBX
 OVL111|Northern Telecom Meridian (SL1)
 2.4.20-AV14login:|Avaya Firmware Version 2.4.20-AV14
 2.4.20-AV10login:|Avaya Firmware Version 2.4.20-AV10
+2.6.18-53.AV17PAElogin:|Avaya Firmware Version 2.6.18-53.AV17
+2.6.18-128.AV7csmplogin:|Avaya Firmware Version 2.6.18-128.AV7
 ?login|Possible Nortel DMS
 5ESS login|5ESS Telco Switch
 Account name:|5ESS Telco Switch
