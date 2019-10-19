@@ -541,16 +541,16 @@ void NCURSES_Intro()
     strncpy(msg, "\"Now with 101% more VoIP!\"", sizeof(msg));
     mvwprintw(info, 4, (50-strlen(msg)) / 2, "%s", msg);
     wattrset(info, COLOR_PAIR(6));
-    strncpy(msg, "Written By Da Beave", sizeof(msg));
+    strncpy(msg, "Written By Da Beave (j", sizeof(msg));
     mvwprintw(info, 6, (50-strlen(msg)) / 2, "%s", msg);
     wattrset(info, COLOR_PAIR(5));
-    strncpy(msg, "Released Jan. 16th 2006", sizeof(msg));
+    strncpy(msg, "Released XXX. XXth 2019", sizeof(msg));
     mvwprintw(info, 8, (50-strlen(msg)) / 2, "%s", msg);
     strncpy(msg, "Contact Information:", sizeof(msg));
     mvwprintw(info, 10, (50-strlen(msg)) / 2, "%s", msg);
-    strncpy(msg, "Email: beave@softwink.com", sizeof(msg));
+    strncpy(msg, "Email: dabeave@gmail.com", sizeof(msg));
     mvwprintw(info, 11, (50-strlen(msg)) / 2, "%s", msg);
-    strncpy(msg, "IRC: irc.telephreak.org #telephreak", sizeof(msg));
+    strncpy(msg, "Twitter: @dabeave", sizeof(msg));
     mvwprintw(info, 12, (50-strlen(msg)) / 2, "%s", msg);
 
     wrefresh(info);

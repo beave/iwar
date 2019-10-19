@@ -515,7 +515,6 @@ void loginfo(int mysqllog, const char *response, const char *ident, const char *
 
 
     int   length;
-    char *notsafe;		/* Pre-processed string from user */
     char sqltmp[1024];
 
     time_t t;
@@ -2448,10 +2447,10 @@ int main(int argc,  char **argv)
 
                             sendmodem("\r");
 
-                            if ( key == (int)'p') 
-				    {
-					    NCURSES_Pause(0);
-				    }
+                            if ( key == (int)'p')
+                                {
+                                    NCURSES_Pause(0);
+                                }
 
                             if ( key == (int)'[')
                                 {
