@@ -20,17 +20,17 @@ computers serial port and modem to "scan" phone numbers.
 
 _Features_
 
-	- Nice "curses" front-end with color coded display (see below).
-	- Terminal window to display connection and communications with the modem.
-	- "Banner detection" and "recording" to assist with identification of connections.
-	- "Tone location" (aka - similar to "Toneloc") support via ATDT5551212W;
-	- Random [default] or sequentially dialing.
-	- "Key stroke" marking of "interesting" phone numbers.
-	- Full control over the modem.  iWar controls baud rate, parity, DTR, CTS/RTS, etc. 
-	- The ability to "save state" of the dialing session.  This allows you to stop/restart a war dialing session.
-	- A "blacklist" of phone numbers to never dial.
-	- The ability to load a pre-generated list of phone numbers. 
-	- iWar is open source and released under the GNU/GPLv2 license. 
+- Nice "curses" front-end with color coded display (see below).
+- Terminal window to display connection and communications with the modem.
+- "Banner detection" and "recording" to assist with identification of connections.
+- "Tone location" (aka - similar to "Toneloc") support via ATDT5551212W;
+- Random [default] or sequentially dialing.
+- "Key stroke" marking of "interesting" phone numbers.
+- Full control over the modem.  iWar controls baud rate, parity, DTR, CTS/RTS, etc. 
+- The ability to "save state" of the dialing session.  This allows you to stop/restart a war dialing session.
+- A "blacklist" of phone numbers to never dial.
+- The ability to load a pre-generated list of phone numbers. 
+- iWar is open source and released under the GNU/GPLv2 license. 
 
 
 __iWar command line arguments__
