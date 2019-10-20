@@ -39,5 +39,51 @@ Usage: iwar [parameters] --range [dial range]
 
 </pre>
 
+__iWar keyboard assigments__
 
+<pre>
+
+ 'a' or 'ESC'		: Abort wardialing and quit.
+ 'b'			: Enable terminal 'beep' on carrier discovery.
+ '0'			: Turn off modem speaker during dialing.
+ '1' - '3'		: Turn up/down modem speaker during dialing.
+ '+'			: Add 5 seconds to the connection timer.
+ '-'			: Subtract 5 seconds from the connection timer.
+ 's'			: Save dialing state.
+ 'q'			: Quite and save dialing state.
+ 'p'			: Pause dialing.
+
+</pre>
+
+__iWar hot key assignments__
+
+<pre>
+
+ 'm'			: Mark number as 'interesting'.
+ 'c'			: Mark number as having a 'carrier'.
+ 'f'			: Mark number as a 'fax'.
+ 't'			: Mark number as having a 'tone'.
+ 'x'			: Mark number as a PBX.
+ 'v'			: Mark number as voicemail.
+ '['			: Mark number as 'interesting' and pause the scan.
+ 'l'			: Mark number with a customer/user input note.
+
+</pre>
+
+__iWar terminal color coding assignments__
+
+<pre>
+
+ WHITE / A_NORMAL	: NO CARRIER
+ YELLOW / A_BOLD	: BUSY
+ GREEN / A_BLINK	: CONNECT
+ BLUE / A_UNDERLINE	: VOICE
+ WHITE / A_DIM		: NO ANSWER
+ MAGENTA / A_NORMAL	: Already scanned (loaded from file).
+ CYAN / A_REVERSE	: Blacklisted phone number.
+ RED / A_NORMAL		: Number skipped by user via spacebar.
+ GREEN / A_STANDOUT	: Manually marked.
+ BLUE / A_STANDOUT	: Possible 'interesting' number (via Toneloc W;).
+
+</pre>
 
