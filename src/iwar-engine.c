@@ -58,30 +58,43 @@ char fileout[MAXPATH] = DEFAULT_LOGFILE;
 char tmp[128] = { 0 };
 char tmp2[128] = { 0 };
 char *tmp3 = NULL;
-char *tmp4 = NULL;
 
 uint64_t dialnum;
 uint64_t ss;
 uint64_t es;
-uint64_t num[9999];
 
-int savestate=0;
-int savestatecount=0;
+bool savestate_flag=0;
 int i;
 int b;
 int j=0;
 int row=10;
 int col=2;
 
+uint64_t savestate_number[MAX_DIAL];
+int savestatecount=0;
+
 /* Blacklist */
 
-int blacklistcount;
-uint64_t blacklistnum[1000];
+typedef struct _blacklist _blacklist;
+struct _blacklist
+{
+    uint64_t number;
+};
+
+struct _blacklist *blacklist = NULL;
+int blacklistcount=0;
 
 /* Pre-generated user list */
 
-int userlistcount;
-uint64_t userlistnum[9999];
+typedef struct _userlist _userlist;
+struct _userlist
+{
+    uint64_t number;
+};
+
+struct _userlist *userlist = NULL;
+int userlistcount=0;
+
 
 /***************************************************************************/
 /*                         General Help/Usage                              */
@@ -144,7 +157,7 @@ void Usage(void)
     printf(" --load-state / -l \t:  Load 'saved state' file (previously dialed numbers)\n");
     printf("\niWar [Intelligent Wardialer] Version %s - By Da Beave (dabeave@gmail.com)\n\n",VERSION);
     printf("\n");
- 
+
 
 };
 
@@ -252,7 +265,7 @@ void SendModem(const char *sendstring)
 /* from a file                                                        */
 /**********************************************************************/
 
-int GetNumber(int dialtype, int tonedetect, const char *predial, const char *postdial)
+int GetNumber(bool dialtype, bool tonedetect, const char *predial, const char *postdial)
 {
 
     /*********************************************************/
@@ -274,7 +287,7 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
                     exit(0);
                 }
 
-            dialnum=userlistnum[j];
+            dialnum=userlist[j].number;
 
             /* Blacklist check */
 
@@ -282,7 +295,7 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
                 {
                     for (k=0; k<blacklistcount; k++)
                         {
-                            if (blacklistnum[k] == dialnum)
+                            if (blacklist[k].number == dialnum)
                                 {
                                     NCURSES_Status("Blacklisted Number - Skipping...");
                                     LogInfo("BLACKLISTED", "", "");
@@ -292,7 +305,7 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
                                     RowColCheck();
                                     sleep(1);
                                     j++;
-                                    dialnum=userlistnum[j];
+                                    dialnum=userlist[j].number;
                                     flag=true;
                                     break;
                                 }
@@ -304,7 +317,8 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
                 }
 
             NCURSES_Count(userlistcount-j);
-            if ( tonedetect==1)
+
+            if ( tonedetect == true )
                 {
                     snprintf(sendstring, sizeof(sendstring), "ATDT%s%lld%sW;\r", predial, dialnum, postdial);
                 }
@@ -324,7 +338,7 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
     /***********************/
 
 
-    if (dialtype == 1)
+    if ( dialtype == true )
         {
 
             if (ss >= es+1)
@@ -345,7 +359,7 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
                 {
                     for (k=0; k<blacklistcount; k++)
                         {
-                            if (blacklistnum[k] == dialnum)
+                            if (blacklist[k].number == dialnum)
                                 {
                                     NCURSES_Status("Blacklisted Number - Skipping...");
                                     LogInfo("BLACKLISTED", "", "");
@@ -371,13 +385,13 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
 
             flag=true;
 
-            while (savestate == 1 && flag != false)
+            while ( savestate_flag == true && flag != false)
                 {
                     /* k=3 because 0-2 are for dialtype, start scan and end scan */
 
                     for (k=3; k<savestatecount; k++)
                         {
-                            if (num[k] == dialnum)
+                            if ( savestate_number[k] == dialnum)
                                 {
                                     ss++;
                                     dialnum=ss;
@@ -387,12 +401,13 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
                                 {
                                     flag=false;
                                 }
+
                         }
                 }
 
             /* Build our dial string.  Are we doing tone location? */
 
-            if ( tonedetect==1 )
+            if ( tonedetect == true )
                 {
                     /* Can't do old school tone location with a post dial string,
                        so we ignore it.  */
@@ -404,7 +419,7 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
                     snprintf(sendstring, sizeof(sendstring), "ATDT%s%lld%s\r", predial, ss, postdial);
                 }
 
-            num[j]=ss;
+            savestate_number[j]=ss;
             j++;
             ss++;
             NCURSES_Count(es-ss+1);
@@ -419,7 +434,7 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
        startscan, endscan.  If not from a saved state,  start at the front
        of the array */
 
-    if (savestate == 1)
+    if ( savestate_flag == true )
         {
             k=3;    /* Saved state or new ? */
         }
@@ -431,39 +446,38 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
     while (j < es-ss+k+1 )
         {
 
-//            dialnum = (long long)((double)rand() / ((double)RAND_MAX + 1) * es+1);
-	   dialnum = GetRandNumber(ss, es);
+            dialnum = GetRandNumber(ss, es);
 
             if (dialnum >= ss )   /* Usable number? */
                 {
 
-                    if (savestate == 0)
+                    if ( savestate_flag == false )
                         {
 
-                            for (i=0; i < j; i++) 
-				    {
-					    if (num[i] == dialnum) 
-						    {
-							    flag=true;
-						    }
-					}
+                            for (i=0; i < j; i++)
+                                {
+                                    if ( savestate_number[i] == dialnum)
+                                        {
+                                            flag=true;
+                                        }
+                                }
                         }
                     else
                         {
-                            for (i=3; i < j; i++) 
-				    {
-					    if (num[i] == dialnum) 
-						    {
-							    flag=true;
-						     }
-					}
+                            for (i=3; i < j; i++)
+                                {
+                                    if ( savestate_number[i] == dialnum)
+                                        {
+                                            flag=true;
+                                        }
+                                }
                         }
 
                     /* Check blacklist for number */
 
                     for (i=0; i<blacklistcount; i++)
                         {
-                            if (blacklistnum[i] == dialnum)
+                            if ( blacklist[i].number == dialnum)
                                 {
                                     NCURSES_Status("Blacklisted Number - Skipping...");
                                     attron( COLOR_PAIR(15) | A_REVERSE);
@@ -472,7 +486,9 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
                                     RowColCheck();
                                     LogInfo("BLACKLISTED", "", "");
                                     sleep(1);
-                                    num[j] = dialnum;
+
+                                    savestate_number[j] = dialnum;
+
                                     j++;
                                     flag=true;
                                     break;
@@ -482,11 +498,13 @@ int GetNumber(int dialtype, int tonedetect, const char *predial, const char *pos
 
                     if ( flag == false )
                         {
-                            num[j] = dialnum;
+
+                            savestate_number[j] = dialnum;
+
                             j++;
                             flag=false;
 
-                            if (tonedetect == 1 )              /* Tone location */
+                            if (tonedetect == true )              /* Tone location */
                                 {
                                     snprintf(sendstring, sizeof(sendstring), "ATDT%s%lldW;\r", predial, dialnum);
                                 }
@@ -582,6 +600,7 @@ void LogInfo(const char *response, const char *ident, const char *recordbuf )
 
     t = time(NULL);
     now=localtime(&t);
+
     strftime(tmp2, sizeof(tmp2), "%H:%M:%S",  now);
 
     /* Data is formated based on the information we need to log */
@@ -682,13 +701,13 @@ void DrawInfo( const char *baudrate,
                const char *numbersfile,
                const char *predial,
                const char *postdial,
-               int logtype,
+               bool logtype,
                int connect,
                int nocarrier,
                int busy,
                int voice,
                int tonesilence,
-               int dialtype,
+               bool dialtype,
                int timeout )
 {
 
@@ -696,7 +715,7 @@ void DrawInfo( const char *baudrate,
 
     /* If the dialtype is 0/1 (Ran. / Seq. ) */
 
-    if ( dialtype==0 )
+    if ( dialtype == false )
         {
             strlcpy(tmp, "Random", sizeof(tmp));
             j=savestatecount;
@@ -720,7 +739,7 @@ void DrawInfo( const char *baudrate,
     if ( numbersfile[0] != '\0' )
         {
             move(2,20);
-            printw("%lld - %lld [%d]", userlistnum[0], userlistnum[userlistcount-1], userlistcount);
+            printw("%lld - %lld [%d]", userlist[0].number, userlist[userlistcount-1].number, userlistcount);
         }
     else
         {
@@ -749,7 +768,7 @@ void DrawInfo( const char *baudrate,
     move(3,20);
     printw("%s / %s ", tmp, tmp2);
 
-    if (logtype==1)
+    if ( logtype== true )
         {
             strlcpy(tmp2, "[F]", sizeof(tmp2));
         }
@@ -776,13 +795,24 @@ void DrawInfo( const char *baudrate,
 /* ranges.                                                           */
 /*********************************************************************/
 
-uint64_t GetRandNumber (uint64_t begin, uint64_t end) 
-   {
+uint64_t GetRandNumber (uint64_t begin, uint64_t end)
+{
     uint64_t range = (end - begin) + 1;
     uint64_t limit = ((uint64_t)RAND_MAX + 1) - (((uint64_t)RAND_MAX + 1) % range);
     uint64_t randVal = rand();
     while (randVal >= limit) randVal = rand();
     return (randVal % range) + begin;
+}
+
+/********************
+ * Remove new-lines
+ ********************/
+
+void Remove_Return(char *s)
+{
+    char *s1, *s2;
+    for(s1 = s2 = s; *s1; *s1++ = *s2++ )
+        while( *s2 == '\n' )s2++;
 }
 
 /**********************************************************************/
@@ -795,11 +825,16 @@ int main(int argc,  char **argv)
 
     WINDOW *modemstatus;
 
-    struct banner_cfg
+    /* Banner identification array */
+
+    typedef struct _banner_cfg _banner_cfg;
+    struct _banner_cfg
     {
-        char search_string[40];
+        char search_string[128];
         char os_type[128];
-    } bannercfg[1000];
+    };
+
+    struct _banner_cfg *bannercfg = NULL;
 
     char *iwar_option;
     char *iwar_value;
@@ -815,7 +850,7 @@ int main(int argc,  char **argv)
     int redial=3;
     bool plushang=false;
     int sendcr=0;
-    int record=1;		     /* Record remove system banners */
+    int record=true;		     /* Record remove system banners */
     int dtrsec=0;
     char recordbuf[RECORD_BUFFER] = { 0 };    /* Record buffer */
 
@@ -831,7 +866,7 @@ int main(int argc,  char **argv)
     int nocarrier=0;
     int busy=0;
     int voice=0;
-    int tonedetect=0;
+    bool tonedetect=false;
     int tonesilence=0;
     int mark=0;
     int skip=0;
@@ -852,7 +887,7 @@ int main(int argc,  char **argv)
 
     char modeminit[200] = { 0 };
 
-    int dialtype=0;		/*  1 == sequential */
+    bool dialtype=0;		/*  1 == sequential */
     int buflen;
     int waitin=0;
     int b;
@@ -873,7 +908,7 @@ int main(int argc,  char **argv)
     char tmpscanbuf[128] = { 0 };
     char scanbuf[128] = { 0 };
 
-    int logtype=0;
+    bool logtype=false;
     int ring=0;
     int remotering=0;
 
@@ -946,7 +981,6 @@ int main(int argc,  char **argv)
                     strlcpy(bannerfile, iwar_value, strlen(iwar_value));
                 }
 
-
             if (!strcmp(iwar_option, "blacklistfile"))
                 {
                     strlcpy(blacklistfile, iwar_value, strlen(iwar_value));
@@ -970,9 +1004,15 @@ int main(int argc,  char **argv)
                     ringtimeout=atoi(tmp);
                 }
 
-            if (!strcmp(iwar_option, "tone_detect")) tonedetect=1;
+            if (!strcmp(iwar_option, "tone_detect"))
+                {
+                    tonedetect = true;
+                }
 
-            if (!strcmp(iwar_option, "dtrinit") &&  tonedetect != 1) dtrinit=1;
+            if (!strcmp(iwar_option, "dtrinit") && tonedetect != true)
+                {
+                    dtrinit=1;
+                }
 
             if (!strcmp(iwar_option, "banner_timeout"))
                 {
@@ -1021,15 +1061,15 @@ int main(int argc,  char **argv)
                     conredial=atoi(tmp);
                 }
 
-            if (!strcmp(iwar_option, "beep")) 
-	    {
-		    beepflag=true;
-		    }
+            if (!strcmp(iwar_option, "beep"))
+                {
+                    beepflag=true;
+                }
 
-            if (!strcmp(iwar_option, "PlusHangup")) 
-		    {
-			    plushang=true;
-			    }
+            if (!strcmp(iwar_option, "PlusHangup"))
+                {
+                    plushang=true;
+                }
 
             if (!strcmp(iwar_option, "PlusHangupsleep"))
                 {
@@ -1053,25 +1093,25 @@ int main(int argc,  char **argv)
         { "device",       required_argument,    NULL,   't' },
         { "load-state",   required_argument,    NULL,   'l' },
         { "load",         required_argument,    NULL,   'L' },		/* Load from file */
-	{ "log", 	  required_argument,    NULL,   'f' },
-	{ "software",	  no_argument, 		NULL, 	'c' }, 
-	{ "config",	  required_argument,    NULL, 	'C' }, 
-	{ "range",	  required_argument,    NULL, 	'r' },
-	{ "predial",	  required_argument,    NULL,   'e' }, 
-	{ "postdial",  	  required_argument,    NULL,   'g' }, 
-	{ "tonedetect",	  no_argument, 		NULL, 	'a' }, 
-	{ "sequential",   no_argument,          NULL,   'x' },
+        { "log", 	  required_argument,    NULL,   'f' },
+        { "software",	  no_argument, 		NULL, 	'c' },
+        { "config",	  required_argument,    NULL, 	'C' },
+        { "range",	  required_argument,    NULL, 	'r' },
+        { "predial",	  required_argument,    NULL,   'e' },
+        { "postdial",  	  required_argument,    NULL,   'g' },
+        { "tonedetect",	  no_argument, 		NULL, 	'a' },
+        { "sequential",   no_argument,          NULL,   'x' },
         { "full-logging", no_argument,          NULL,   'F' },
         { "disable-banner", no_argument,        NULL,   'b' },
-	{ "disable-record", no_argument,        NULL,   'o' },
+        { "disable-record", no_argument,        NULL,   'o' },
         {0, 0, 0, 0}
     };
 
-        static const char *short_options = "s:p:d:t:l:L:f:C:r:e:g:chaxFbo";
+    static const char *short_options = "s:p:d:t:l:L:f:C:r:e:g:chaxFbo";
 
-	int option_index = 0;
+    int option_index = 0;
 
-     while ((c = getopt_long(argc, argv, short_options, long_options, &option_index)) != -1)
+    while ((c = getopt_long(argc, argv, short_options, long_options, &option_index)) != -1)
 
 
         {
@@ -1216,15 +1256,15 @@ int main(int argc,  char **argv)
                     break;
 
                 case 'a':
-                    tonedetect=1;
+                    tonedetect=true;
                     break;
 
                 case 'x':
-                    dialtype=1;
+                    dialtype=true;
                     break;
 
                 case 'F':
-                    logtype=1;
+                    logtype=true;
                     break;
 
                 case 'b':
@@ -1232,7 +1272,7 @@ int main(int argc,  char **argv)
                     break;
 
                 case 'o':
-                    record=0;
+                    record=false;
                     break;
 
                 default:
@@ -1262,12 +1302,26 @@ int main(int argc,  char **argv)
             /* convert user input into something usable */
 
             tmp3 = strtok(tmpscanrange, "-");
-            snprintf(startscan, sizeof(startscan), "%s", tmp3);
-            ss=atoll(startscan);
 
-            tmp4  = strtok(NULL, "-");
-            snprintf(endscan, sizeof(endscan), "%s", tmp4);
-            es=atoll(endscan);
+            if ( tmp3 == NULL )
+                {
+                    fprintf(stderr, "ERROR - Invalid range.  Need to be XXXX-XXXX format.\n");
+                    exit(1);
+
+                }
+            ss=atoll(tmp3);
+
+            tmp3  = strtok(NULL, "-");
+
+            if ( tmp3 == NULL )
+                {
+                    fprintf(stderr, "ERROR - Invalid range.  Need to be XXXX-XXXX format.\n");
+                    exit(1);
+
+                }
+
+            es=atoll(tmp3);
+
 
             /* Make sure user input is valid */
 
@@ -1285,17 +1339,17 @@ int main(int argc,  char **argv)
                     exit(1);
                 }
 
-	   
-	  
-	   /* 
-            if ( es > RAND_MAX && dialtype == 0)
-                {
-                    fprintf(stderr, "\nERROR: Largest random number is %d.  Try using the predial string.\n\n", RAND_MAX);
-                    Usage();
-                    exit(1);
-                }
-		*/
-		
+
+
+            /*
+                 if ( es > RAND_MAX && dialtype == 0)
+                     {
+                         fprintf(stderr, "\nERROR: Largest random number is %d.  Try using the predial string.\n\n", RAND_MAX);
+                         Usage();
+                         exit(1);
+                     }
+            */
+
 
             if ( es-ss > 100 )
                 {
@@ -1319,26 +1373,42 @@ int main(int argc,  char **argv)
                 }
 
             bannercount=0;
+
             while (fgets(bannerbuf,1024,banner) != NULL)
                 {
                     if (bannerbuf[0] == '#') continue;
                     if (bannerbuf[0] == 10 ) continue;
 
-                    /* Simple test to see if the banner lines are correct,  under */
-                    /* Cygwin and possibly Mac OSX,  if the banner file is        */
-                    /* incomplete (missing a |),  it causes a seg. fault          */
+                    bannercfg = (_banner_cfg *) realloc(bannercfg, (bannercount+1) * sizeof(_banner_cfg));
 
-                    if (!strstr(bannerbuf, "|"))
+                    if ( bannercfg == NULL )
                         {
-                            fprintf(stderr, "ERROR: %s is incomplete/corrupt (missing |)\n\n", BANNER_FILE_PATH);
+                            fprintf(stderr, "ERROR - Failed to reallocate memory for _banner_cfg. Abort!", __FILE__, __LINE__);
                             exit(1);
                         }
 
+                    memset(&bannercfg[bannercount], 0, sizeof(struct _banner_cfg));
+
                     tmp3 = strtok(bannerbuf, "|");
-                    snprintf(bannercfg[bannercount].search_string, sizeof(bannercfg[bannercount].search_string), "%s", tmp3);
+
+                    if ( tmp3 == NULL )
+                        {
+                            fprintf(stderr, "ERROR - format issue with %s. Abort\n", bannerfile);
+                            exit(1);
+                        }
+
+                    strlcpy(bannercfg[bannercount].search_string, tmp3, sizeof(bannercfg[bannercount].search_string));
+
                     tmp3 = strtok(NULL, "|");
-                    snprintf(tmp, sizeof(tmp), "%s", tmp3);
-                    strlcpy(bannercfg[bannercount].os_type, tmp, sizeof(bannercfg[bannercount].os_type));
+
+                    if ( tmp3 == NULL )
+                        {
+                            fprintf(stderr, "ERROR - format issue with %s. Abort\n", bannerfile);
+                            exit(1);
+                        }
+
+                    Remove_Return(tmp3);
+                    strlcpy(bannercfg[bannercount].os_type, tmp3, sizeof(bannercfg[bannercount].os_type));
                     bannercount++;
                 }
 
@@ -1357,12 +1427,24 @@ int main(int argc,  char **argv)
         }
 
     blacklistcount=0;
+
     while (fgets(buf2,sizeof(buf2),blacklst) != NULL)
         {
+
             if (buf2[0] == '#') continue;
             if (buf2[0] == 10 ) continue;
 
-            blacklistnum[blacklistcount]=atoll(buf2);
+            blacklist = (_blacklist *) realloc(blacklist, (blacklistcount+1) * sizeof(_blacklist));
+
+            if ( blacklist == NULL )
+                {
+                    fprintf(stderr, "ERROR - Failed to reallocate memory for _blacklist. Abort!", __FILE__, __LINE__);
+                    exit(1);
+                }
+
+            memset(&blacklist[blacklistcount], 0, sizeof(struct _blacklist));
+            blacklist[blacklistcount].number=atoll(buf2);
+
             blacklistcount++;
         }
 
@@ -1388,9 +1470,23 @@ int main(int argc,  char **argv)
                 {
                     if (buf2[0] == '#') continue;
                     if (buf2[0] == 10 ) continue;
-                    userlistnum[userlistcount] = atoll(buf2);
+
+
+                    userlist = (_userlist *) realloc(userlist, (userlistcount+1) * sizeof(_userlist));
+
+                    if ( bannercfg == NULL )
+                        {
+                            fprintf(stderr, "ERROR - Failed to reallocate memory for _userlist. Abort!", __FILE__, __LINE__);
+                            exit(1);
+                        }
+
+                    memset(&userlist[userlistcount], 0, sizeof(struct _userlist));
+
+                    userlist[userlistcount].number = atoll(buf2);
+                    //userlistnum[userlistcount] = atoll(buf2);
                     userlistcount++;
                 }
+
             fclose(userloadfile);
             printf("%d numbers loaded\n", userlistcount);
         }
@@ -1416,7 +1512,20 @@ int main(int argc,  char **argv)
                 {
                     if (buf2[0] == '#') continue;
                     if (buf2[0] == 10 ) continue;
-                    num[savestatecount] = atoll(buf2);
+                    /*
+                                        savestate = (_savestate *) realloc(savestate, (savestatecount+1) * sizeof(_savestate));
+
+                                        if ( savestate == NULL )
+                                            {
+                                                fprintf(stderr, "ERROR - Failed to reallocate memory for _savestate. Abort!", __FILE__, __LINE__);
+                                                exit(1);
+                                            }
+
+                                        memset(&savestate[savestatecount], 0, sizeof(struct _savestate));
+
+                                        savestate[savestatecount].number = atoll(buf2);
+                    		    */
+                    savestate_number[savestatecount] = atoll(buf2);
                     savestatecount++;
                 }
 
@@ -1426,11 +1535,11 @@ int main(int argc,  char **argv)
                     exit(1);
                 }
 
-            savestate=1;
+            savestate_flag=true;
 
-            dialtype=num[0];                /* dial type */
-            ss=num[1];
-            es=num[2];
+            dialtype=savestate_number[0];                /* dial type */
+            ss=savestate_number[1];
+            es=savestate_number[2];
 
             /* In case they save state again */
 
@@ -1453,7 +1562,7 @@ int main(int argc,  char **argv)
 
     /* Type of dialtype.... Random/Seq (0/1) */
 
-    if ( dialtype==0 )
+    if ( dialtype == false )
         {
             strlcpy(tmp, "Random", sizeof(tmp));
         }
@@ -1494,7 +1603,7 @@ int main(int argc,  char **argv)
 
     if ( numbersfile[0] != '\0' )
         {
-            fprintf(outfd, "= Start of scan: %lld | End of scan: %lld (Total Numbers: %d)\n", userlistnum[0], userlistnum[userlistcount-1], userlistcount);
+            fprintf(outfd, "= Start of scan: %lld | End of scan: %lld (Total Numbers: %d)\n", userlist[0].number, userlist[userlistcount-1].number, userlistcount);
         }
     else
         {
@@ -1523,6 +1632,7 @@ int main(int argc,  char **argv)
 
     t = time(NULL);
     now=localtime(&t);
+
     strftime(tmp2, sizeof(tmp2), "%H:%M:%S %F",  now);
 
     fprintf(outfd, "= Scan Start: %s\n", tmp2);
@@ -1603,12 +1713,12 @@ int main(int argc,  char **argv)
     /* If we are loading this from a previous state/file,   go ahead and print */
     /* the numbers in COLOR_PAIR(14) that have already been dialed             */
 
-    if (savestate == 1)
+    if ( savestate_flag == true )
         {
             for (i=3; i<savestatecount; i++)
                 {
                     attron( COLOR_PAIR(14) | A_NORMAL );
-                    NCURSES_Plot(num[i], row, col);
+                    NCURSES_Plot(savestate_number[i], row, col);
                     attroff(COLOR_PAIR(14) | A_NORMAL );
                     RowColCheck();
                 }
@@ -1627,11 +1737,11 @@ int main(int argc,  char **argv)
             if (select(portfd+1, &fds, NULL, NULL, &tv) > 0 )
                 {
                     buflen = read(portfd, buf, 1);
-		    
-                    if (buflen == -1) 
-			    {
-				    CloseTTY(-1);
-			    }
+
+                    if (buflen == -1)
+                        {
+                            CloseTTY(-1);
+                        }
 
                     waitin=0;              /* Got data, reset out nodata counter */
 
@@ -1640,10 +1750,10 @@ int main(int argc,  char **argv)
                             snprintf(tmpscanbuf, sizeof(tmpscanbuf), "%c", buf[i]);
                             ch=buf[i];
 
-                            if (record == 1) 
-				    {
-					    strlcat(recordbuf, tmpscanbuf, sizeof(recordbuf));
-					    }
+                            if (record == 1)
+                                {
+                                    strlcat(recordbuf, tmpscanbuf, sizeof(recordbuf));
+                                }
 
                             if (ch == 10)
                                 {
@@ -1671,10 +1781,10 @@ int main(int argc,  char **argv)
                             /* if connected,  count the bytes */
 
 
-                            if ( connectflag == true && bannercheck == true ) 
-			    {
-				    bitcount++;
-			    }
+                            if ( connectflag == true && bannercheck == true )
+                                {
+                                    bitcount++;
+                                }
 
                             if (bitcount > bannermaxcount)
                                 {
@@ -1730,9 +1840,9 @@ int main(int argc,  char **argv)
                                     NCURSES_Status("CONNECTED!");
 
                                     if ( beepflag == true )
-					   {
-						   beep();
-						   	}
+                                        {
+                                            beep();
+                                        }
 
                                     attron( COLOR_PAIR(11) | A_BLINK );
                                     NCURSES_Plot(dialnum, row, col);
@@ -1741,7 +1851,7 @@ int main(int argc,  char **argv)
                                     connect++;
                                     NCURSES_Right(1, connect);
 
-                                    if ( bannercheck == false && record != 1)
+                                    if ( bannercheck == false && record != true)
                                         {
                                             LogInfo("CONNECT", "", recordbuf);
                                             recordbuf[0] = '\0';
@@ -1772,9 +1882,9 @@ int main(int argc,  char **argv)
                                 }
 
                             if ( ( !strcmp(scanbuf, "NO CARRIER") && waitin > 5 ) ||
-                                  ( !strcmp(scanbuf, "NO ANSWER")  && waitin > 5 ) ||
-                                  ( !strcmp(scanbuf, "NO CARRIER") && connectflag == true ) ||
-                                  ( !strcmp(scanbuf, "NO ANSWER")  && connectflag == true ) )
+                                    ( !strcmp(scanbuf, "NO ANSWER")  && waitin > 5 ) ||
+                                    ( !strcmp(scanbuf, "NO CARRIER") && connectflag == true ) ||
+                                    ( !strcmp(scanbuf, "NO ANSWER")  && connectflag == true ) )
 
                                 {
 
@@ -1803,7 +1913,8 @@ int main(int argc,  char **argv)
                                             RowColCheck();
                                             nocarrier++;
                                             NCURSES_Right(2, nocarrier);
-                                            if (logtype==1)
+
+                                            if (logtype == true)
                                                 {
                                                     LogInfo("NO CARRIER", "", "");
                                                 }
@@ -1842,12 +1953,12 @@ int main(int argc,  char **argv)
                             /* If we are doing Toneloc style tone detection,  we look
                             for a "OK" after the ATDT5551212W;  */
 
-                            if (!strcmp(scanbuf, "OK") && tonedetect==1 && ok == 0)
+                            if (!strcmp(scanbuf, "OK") && tonedetect == true && ok == 0)
                                 {
-                                    if ( beepflag == true) 
-					    {
-						    beep();
-						    }
+                                    if ( beepflag == true)
+                                        {
+                                            beep();
+                                        }
 
 
                                     LogInfo("TONE", "", "");
@@ -1890,7 +2001,7 @@ int main(int argc,  char **argv)
                                     busy++;
                                     NCURSES_Right(3, busy);
 
-                                    if (logtype==1)
+                                    if (logtype == true)
                                         {
                                             LogInfo("BUSY", "", "");
                                         }
@@ -1906,9 +2017,9 @@ int main(int argc,  char **argv)
                                     ring=0;  /* yes,  weird */
                                 }
 
-                            /* Legend has it that some modems will return a "TONE". 
-			     * I've never seen a modem do this,  but this is in here
-			     * in case your modem supports it. */
+                            /* Legend has it that some modems will return a "TONE".
+                            * I've never seen a modem do this,  but this is in here
+                            	     * in case your modem supports it. */
 
                             if (!strcmp(scanbuf, "TONE"))
                                 {
@@ -1939,7 +2050,7 @@ int main(int argc,  char **argv)
                                     voice++;
                                     NCURSES_Right(4, voice);
 
-                                    if (logtype==1)
+                                    if (logtype == true)
                                         {
                                             LogInfo("VOICE", "", "");
                                         }
@@ -2141,7 +2252,7 @@ int main(int argc,  char **argv)
                 {
                     NCURSES_Status("Timeout.");
 
-                    if (logtype==1)
+                    if ( logtype== true )
                         {
                             LogInfo("Timeout", "", "");
                         }
@@ -2201,7 +2312,7 @@ int main(int argc,  char **argv)
                     if ( key == (int)'a' || key == 27 )
                         {
                             dialnum=0;
-                            LogInfo("User Abort", "", "");
+//                            LogInfo("User Abort", "", "");
                             SendModem("\r");
                             NCURSES_Status("User Abort!");
                             NCURSES_Info("User Abort!",WARN);
@@ -2239,7 +2350,7 @@ int main(int argc,  char **argv)
                             skip++;
                             waddch(modemstatus, 10);  /* Go to next line */
 
-                            if (logtype==1)
+                            if ( logtype == true)
                                 {
                                     LogInfo("Number Skipped", "", "");
                                 }
@@ -2312,10 +2423,10 @@ int main(int argc,  char **argv)
                                         {
                                             m_dtrtoggle(portfd,dtrsec);
 
-                                            if (dtrinit == 1 ) 
-						    {
-							    DTRReInit(modeminit, volume);
-							    	}
+                                            if (dtrinit == 1 )
+                                                {
+                                                    DTRReInit(modeminit, volume);
+                                                }
                                         }
                                 }
 
@@ -2419,7 +2530,7 @@ int main(int argc,  char **argv)
                             waitin=0;
                             mark++;
 
-			    NCURSES_SimpleForm(tmp, sizeof(tmp));
+                            NCURSES_SimpleForm(tmp, sizeof(tmp));
 
                             LogInfo("MARK", tmp, "");
                             touchwin(modemstatus);
@@ -2475,7 +2586,7 @@ int main(int argc,  char **argv)
                                     fprintf(saveloadstate, "%s\n", startscan);
                                     fprintf(saveloadstate, "%s\n", endscan);
 
-                                    if (savestate == 1)
+                                    if ( savestate_flag == true )
                                         {
                                             i=3;
                                         }
@@ -2486,7 +2597,7 @@ int main(int argc,  char **argv)
 
                                     for (b=i; b<j; b++)
                                         {
-                                            fprintf(saveloadstate, "%lld\n", num[b]);
+                                            fprintf(saveloadstate, "%lld\n", savestate_number[b]);
                                         }
 
                                     fclose(saveloadstate);
@@ -2527,6 +2638,7 @@ int main(int argc,  char **argv)
 
                                     t = time(NULL);
                                     now = localtime(&t);
+
                                     strftime(tmp2, sizeof(tmp2), "[ %H:%M:%S ]",  now);
 
                                     fprintf(saveloadstate, "# iWar version %s.  Date: %s\n", VERSION, tmp2);
@@ -2539,7 +2651,7 @@ int main(int argc,  char **argv)
                                     fprintf(saveloadstate, "%s\n", startscan);
                                     fprintf(saveloadstate, "%s\n", endscan);
 
-                                    if (savestate == 1)
+                                    if ( savestate_flag == true )
                                         {
                                             i=3;
                                         }
@@ -2550,7 +2662,7 @@ int main(int argc,  char **argv)
 
                                     for (b=i; b<j; b++)
                                         {
-                                            fprintf(saveloadstate, "%lld\n", num[b]);
+                                            fprintf(saveloadstate, "%lld\n", savestate_number[b]);
                                         }
 
                                     fclose(saveloadstate);

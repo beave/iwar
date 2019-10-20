@@ -194,7 +194,7 @@ void NCURSES_Timer(int timer)
 
 /* Plot number on the screen.  Color is preset before getting here */
 
-void NCURSES_Plot(long long dialnum, int row,  int col)
+void NCURSES_Plot(uint64_t dialnum, int row,  int col)
 {
     move(row,col);
     printw("%lld", dialnum);
@@ -208,7 +208,7 @@ void NCURSES_Right(int type, int value)
 
     int maxcol = 0;
     int maxrow = 0;
-    int rrow = 0; 
+    int rrow = 0;
 
     getmaxyx(stdscr,maxrow,maxcol);
 
@@ -523,7 +523,7 @@ void NCURSES_Intro()
     mvwprintw(info, 2, (50-strlen(msg)) / 2, "%s", msg);
     snprintf(msg, sizeof(msg), "Version: %s", VERSION);
     mvwprintw(info, 3, (50-strlen(msg)) / 2, "%s", msg);
-    strncpy(msg, "\"Now with 101% more VoIP!\"", sizeof(msg));
+    strncpy(msg, "\"Listen to https://demodulate.io!\"", sizeof(msg));
     mvwprintw(info, 4, (50-strlen(msg)) / 2, "%s", msg);
     wattrset(info, COLOR_PAIR(6));
     strncpy(msg, "Written By Da Beave", sizeof(msg));
