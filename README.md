@@ -10,7 +10,7 @@
 
 __iWar - The unix 'Intelligent' war dialer.__
 
-![iWar Screenshot](https://github.com/beave/iwar/raw/master/screenshots/iwar-1.png)
+![iWar Screenshot](https://github.com/beave/iwar/raw/master/screenshots/iwar-2.png)
 
 
 
