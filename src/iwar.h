@@ -57,5 +57,6 @@ void LogInfo(const char *response, const char *ident, const char *recordbuf );
 int GetNumber(bool dialtype, bool tonedetect, const char *predial, const char *postdial);
 uint64_t GetRandNumber (uint64_t begin, uint64_t end);
 void Remove_Return(char *s);
+int RSleep ( int redial, bool rtime );
 
 

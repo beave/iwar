@@ -56,7 +56,8 @@ Usage: iwar [parameters] --range [dial range]
  --disable-record / -o 	:  Disable recording banner data [Dfault: enabled].
  --load / -L 		:  Load numbers to dial from file.
  --load-state / -l 	:  Load 'saved state' file (previously dialed numbers)
- --config / -C          :  Load iwar configuration file.
+ --config / -C          :  Load iWar configuration file.
+ --random-time / -R     :  Sleep a random amount of time between dialing.
 
 </pre>
 

@@ -143,7 +143,7 @@ void Usage(void)
     printf(" --parity / -p \t\t:  Parity (None/Even/Odd) [Default (N)one]\n");
     printf(" --databits / -d \t:  Data bits [Serial default: 8]\n");
     printf(" --device / -t \t\t:  TTY to use (modem) [Default /dev/ttyUSB0]\n");
-    printf(" --xonxoff / -c\t:  Use software handshaking (XON/XOFF) [Default is hardware flow control]\n");
+    printf(" --xonxoff / -c\t\t:  Use software handshaking (XON/XOFF) [Default is hardware flow control]\n");
     printf(" --log / -f \t\t:  Output log file [Default: iwar.log]\n");
     printf(" --predial / -e \t:  Pre-dial string/NPA to scan [Optional]\n");
     printf(" --postdial / -g \t:  Post-dial string [Optional]\n");
@@ -155,7 +155,8 @@ void Usage(void)
     printf(" --disable-record / -o \t:  Disable recording banner data [Dfault: enabled].\n");
     printf(" --load / -L \t\t:  Load numbers to dial from file.\n");
     printf(" --load-state / -l \t:  Load 'saved state' file (previously dialed numbers)\n");
-    printf(" --config / -C \t\t:  Load iwar configuration file.\n");
+    printf(" --config / -C \t\t:  Load iWar configuration file.\n");
+    printf(" --random-time / -R\t:  Sleep a random amount of time between dialing.\n");
     printf("\niWar [Intelligent Wardialer] Version %s - By Da Beave (dabeave@gmail.com)\n\n",VERSION);
     printf("\n");
 
@@ -578,6 +579,34 @@ void RowColCheck( void )
 
 }
 
+/*************************************************************/
+/* Sleep for a set amount of time or a random amount of time */
+/*************************************************************/
+
+int RSleep ( int redial,  bool rtime )
+{
+
+    int sleeptime=0;
+
+    if ( rtime == true )
+        {
+
+            srand( (unsigned int)time( NULL ) );
+            sleeptime=(rand()%(RANDOM_TIME_END-redial+1))+redial;
+            snprintf(tmp, sizeof(tmp), "Sleeping for %d seconds [Random]", sleeptime);
+            NCURSES_Status(tmp);
+            sleep(sleeptime);
+        }
+    else
+        {
+            snprintf(tmp, sizeof(tmp), "Sleeping for %d seconds", redial);
+            NCURSES_Status(tmp);
+            sleep(redial);
+        }
+
+}
+
+
 /**********************************************************************/
 /* LogInfo() - Function takes care of logging information to a ASCII  */
 /* flat file and a MySQL database.  As it stands,  we always log to   */
@@ -666,10 +695,25 @@ void DTRReInit(const char *modeminit, int volume)
     strlcpy(tmp, modeminit, sizeof(tmp));
     SendModem(tmp);
     sleep(1);
-    if (volume == 0) SendModem("ATM0\r");
-    if (volume == 1) SendModem("ATM1L1\r");
-    if (volume == 2) SendModem("ATM1L2\r");
-    if (volume == 3) SendModem("ATM1L3\r");
+    if (volume == 0)
+        {
+            SendModem("ATM0\r");
+        }
+
+    else if (volume == 1)
+        {
+            SendModem("ATM1L1\r");
+        }
+
+    else if (volume == 2)
+        {
+            SendModem("ATM1L2\r");
+        }
+
+    else if (volume == 3)
+        {
+            SendModem("ATM1L3\r");
+        }
     sleep(1);
 }
 
@@ -923,6 +967,8 @@ int main(int argc,  char **argv)
     bool hwhandshake=true;
     bool swhandshake=false;
 
+    bool rtime=false;
+
     char tmpscanrange[31] = { 0 };
     char startscan[20] = { 0 };
     char endscan[20] = { 0 };
@@ -1088,7 +1134,7 @@ int main(int argc,  char **argv)
     const struct option long_options[] =
     {
         { "help",         no_argument,          NULL,   'h' },
-	{ "config",       required_argument,    NULL,   'C' },
+        { "config",       required_argument,    NULL,   'C' },
         { "speed",        required_argument,    NULL,   's' },
         { "parity",       required_argument,    NULL,   'p' },
         { "databits",     required_argument,    NULL,   'd' },
@@ -1106,10 +1152,11 @@ int main(int argc,  char **argv)
         { "full-logging", no_argument,          NULL,   'F' },
         { "disable-banner", no_argument,        NULL,   'b' },
         { "disable-record", no_argument,        NULL,   'o' },
+        { "random-time", no_argument, 		NULL, 	'R' },
         {0, 0, 0, 0}
     };
 
-    static const char *short_options = "s:p:d:t:l:L:f:C:r:e:g:chaxFbo";
+    static const char *short_options = "s:p:d:t:l:L:f:C:r:e:g:chaxFboR";
 
     int option_index = 0;
 
@@ -1123,6 +1170,11 @@ int main(int argc,  char **argv)
                     Usage();
                     exit(0);
                     break;
+
+                case 'R':
+                    rtime=true;
+                    break;
+
                 case 's':
 
                     /*
@@ -1799,12 +1851,15 @@ int main(int argc,  char **argv)
                                     else
                                         {
                                             m_dtrtoggle(portfd,dtrsec);
-                                            if (dtrinit == 1) DTRReInit(modeminit, volume);
+                                            if (dtrinit == 1)
+                                                {
+                                                    DTRReInit(modeminit, volume);
+                                                }
                                         }
 
 
                                     connectflag=false;
-                                    sleep(conredial);
+                                    RSleep(conredial,rtime);
 
                                     recordbuf[0] = '\0';
                                     scanbuf[0] = '\0';
@@ -1830,7 +1885,7 @@ int main(int argc,  char **argv)
                                     /* we resend the same number we attempted */
                                     snprintf(tmp, sizeof(tmp), "Redialing: %lld", dialnum);
                                     NCURSES_Status(tmp);
-                                    sleep(redial);
+                                    RSleep(redial,rtime);
                                     NCURSES_Status(sendstring);
                                     SendModem(sendstring);
                                     scanbuf[0] = '\0';
@@ -1869,7 +1924,7 @@ int main(int argc,  char **argv)
                                                 }
 
                                             connectflag=false;
-                                            sleep(conredial);
+                                            RSleep(redial,rtime);
 
                                             scanbuf[0] = '\0';
                                             tmpscanbuf[0] = '\0';
@@ -1899,7 +1954,7 @@ int main(int argc,  char **argv)
                                             LogInfo("CONNECT", "Not Identified (disconnected)", recordbuf);
                                             recordbuf[0] = '\0';
                                             NCURSES_Status("Connection Dropped.");
-                                            sleep(redial);
+                                            RSleep(redial,rtime);
                                             GetNumber(dialtype, tonedetect, predial, postdial);
                                             NCURSES_Status(sendstring);
                                             SendModem(sendstring);
@@ -1921,7 +1976,7 @@ int main(int argc,  char **argv)
                                                     LogInfo("NO CARRIER", "", "");
                                                 }
 
-                                            sleep(redial);
+                                            RSleep(redial,rtime);
                                             scanbuf[0] = '\0';
                                             tmpscanbuf[0] = '\0';
                                             recordbuf[0] = '\0';
@@ -1974,7 +2029,7 @@ int main(int argc,  char **argv)
                                     GetNumber(dialtype, tonedetect, predial, postdial);
                                     waddch(modemstatus, 10);
                                     SendModem("ATH0\r");
-                                    sleep(redial);
+                                    RSleep(redial,rtime);
                                     NCURSES_Status(sendstring);
                                     SendModem(sendstring);
                                     scanbuf[0] = '\0';
@@ -2009,7 +2064,7 @@ int main(int argc,  char **argv)
                                         }
 
                                     recordbuf[0] = '\0';
-                                    sleep(redial);
+                                    RSleep(redial,rtime);
                                     GetNumber(dialtype, tonedetect, predial, postdial);
                                     NCURSES_Status(sendstring);
                                     SendModem(sendstring);
@@ -2033,7 +2088,7 @@ int main(int argc,  char **argv)
                                     RowColCheck();
                                     GetNumber(dialtype, tonedetect, predial, postdial);
                                     waddch(modemstatus, 10);
-                                    sleep(redial);
+                                    RSleep(redial,rtime);
                                     NCURSES_Status(sendstring);
                                     SendModem(sendstring);
                                     scanbuf[0] = '\0';
@@ -2058,7 +2113,7 @@ int main(int argc,  char **argv)
                                         }
 
                                     recordbuf[0] = '\0';
-                                    sleep(redial);
+                                    RSleep(redial,rtime);
                                     GetNumber(dialtype, tonedetect, predial, postdial);
                                     NCURSES_Status(sendstring);
                                     SendModem(sendstring);
@@ -2113,7 +2168,7 @@ int main(int argc,  char **argv)
                                             if ( dtrinit == 1 ) DTRReInit(modeminit, volume);
                                         }
 
-                                    sleep(conredial);
+                                    RSleep(conredial,rtime);
                                     scanbuf[0] = '\0';
                                     tmpscanbuf[0] = '\0';
                                     recordbuf[0] = '\0';
@@ -2171,7 +2226,7 @@ int main(int argc,  char **argv)
                                     if (dtrinit == 1)  DTRReInit(modeminit, volume);
                                 }
 
-                            sleep(conredial);
+                            RSleep(conredial,rtime);
 
                             scanbuf[0] = '\0';
                             tmpscanbuf[0] = '\0';
@@ -2208,7 +2263,7 @@ int main(int argc,  char **argv)
                     NCURSES_Plot(dialnum, row, col);
                     attroff( COLOR_PAIR(13) | A_STANDOUT );
                     RowColCheck();
-                    sleep(conredial);
+                    RSleep(conredial,rtime);
 
                     scanbuf[0] = '\0';
                     tmpscanbuf[0] = '\0';
@@ -2233,7 +2288,7 @@ int main(int argc,  char **argv)
                     NCURSES_Right(6,timeout);
                     waitin=0;
                     ring=0;
-                    sleep(redial);
+                    RSleep(redial,rtime);
                     attron( COLOR_PAIR(10) | A_NORMAL );
                     NCURSES_Plot(dialnum, row, col);
                     attroff( COLOR_PAIR(10) | A_NORMAL );
@@ -2270,7 +2325,7 @@ int main(int argc,  char **argv)
                     RowColCheck();
                     waddch(modemstatus, 10);
                     waitin=0;
-                    sleep(conredial);
+                    RSleep(conredial,rtime);
 
                     scanbuf[0] = '\0';
                     tmpscanbuf[0] = '\0';
@@ -2370,7 +2425,7 @@ int main(int argc,  char **argv)
                                     DTRReInit(modeminit, volume);
                                 }
 
-                            sleep(redial);
+                            RSleep(redial,rtime);
                             GetNumber(dialtype, tonedetect, predial, postdial);
                             NCURSES_Status(sendstring);
                             SendModem(sendstring);
@@ -2450,7 +2505,7 @@ int main(int argc,  char **argv)
                             waddch(modemstatus,10);
                             wrefresh(modemstatus);
 
-                            sleep(redial);
+                            RSleep(redial,rtime);
                             GetNumber(dialtype, tonedetect, predial, postdial);
                             NCURSES_Status(sendstring);
 
