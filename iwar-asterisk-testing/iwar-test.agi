@@ -1,6 +1,6 @@
 #!/usr/bin/perl -wT
 #
-# Written by Da Beave (beave@softwink.com)
+# Written by Da Beave (dabeave@gmail.com)
 #
 # This is a very simple routine to test iWar with Asterisk without having
 # to dial anyone/anything.   This AGI returns a random sound file back
@@ -8,7 +8,6 @@
 #
 # Please see the README in the "iwar-asterisk-testing" directory.
 #
-
 
 use strict;
 

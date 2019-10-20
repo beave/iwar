@@ -736,8 +736,6 @@ enable_option_checking
 enable_maintainer_mode
 enable_dependency_tracking
 enable_silent_rules
-with_libyaml_includes
-with_libyaml_libraries
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1389,12 +1387,6 @@ Optional Features:
                           speeds up one-time build
   --enable-silent-rules   less verbose build output (undo: "make V=1")
   --disable-silent-rules  verbose build output (undo: "make V=0")
-
-Optional Packages:
-  --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
-  --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-libyaml-includes=DIR  libyaml include directory
-  --with-libyaml-libraries=DIR    libyaml library directory
 
 Some influential environment variables:
   CC          C compiler command
@@ -5838,7 +5830,25 @@ $as_echo "#define HAVE_SYS_WAIT_H 1" >>confdefs.h
 fi
 
 
-for ac_header in stdio.h stdlib.h sys/types.h unistd.h stdint.h inttypes.h ctype.h errno.h fcntl.h sys/stat.h string.h getopt.h time.h stdarg.h limits.h stdbool.h arpa/inet.h netinet/in.h sys/time.h sys/socket.h sys/mmap.h sys/mman.h sys/prctl.h
+
+#include <stdio.h>
+#include <signal.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <ctype.h>
+#include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <string.h>
+#include <curses.h>
+#include <sys/types.h>
+#include <limits.h>
+#include <getopt.h>
+#include <stdbool.h>
+#include <inttypes.h>
+
+for ac_header in stdio.h signal.h unistd.h fcntl.h ctype.h time.h sys/types.h sys/stat.h stdlib.h string.h curses.h sys/types.h limits.h getopt.h stdbool.h inttypes.h form.h unistd.h string.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -6869,7 +6879,7 @@ fi
 
 
 
-for ac_func in select strstr strchr strcmp strlen sizeof write snprintf strncat strlcat strlcpy getopt_long gethostbyname socket htons connect send recv dup2 strspn strdup memset access ftruncate strerror mmap shm_open gettimeofday
+for ac_func in select strstr strchr strcmp strlen sizeof write snprintf strncat strlcat strlcpy getopt_long gethostbyname socket htons connect send recv dup2 strspn strdup memset access ftruncate strerror mmap shm_open gettimeofday rand
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -6886,100 +6896,37 @@ done
 
 # libyaml
 
+#AC_ARG_WITH(libyaml_includes,
+#        [  --with-libyaml-includes=DIR  libyaml include directory],
+#        [with_libyaml_includes="$withval"],[with_libyaml_includes=no])
+#AC_ARG_WITH(libyaml_libraries,
+#        [  --with-libyaml-libraries=DIR    libyaml library directory],
+#        [with_libyaml_libraries="$withval"],[with_libyaml_libraries="no"])
 
-# Check whether --with-libyaml_includes was given.
-if test "${with_libyaml_includes+set}" = set; then :
-  withval=$with_libyaml_includes; with_libyaml_includes="$withval"
-else
-  with_libyaml_includes=no
-fi
+#if test "$with_libyaml_includes" != "no"; then
+#    CPPFLAGS="${CPPFLAGS} -I${with_libyaml_includes}"
+#fi
 
+#AC_CHECK_HEADER(yaml.h,,LIBYAML="no")
 
-# Check whether --with-libyaml_libraries was given.
-if test "${with_libyaml_libraries+set}" = set; then :
-  withval=$with_libyaml_libraries; with_libyaml_libraries="$withval"
-else
-  with_libyaml_libraries="no"
-fi
+#if test "$with_libyaml_libraries" != "no"; then
+#    LDFLAGS="${LDFLAGS} -L${with_libyaml_libraries}"
+#fi
 
+#LIBYAML=""
+#AC_CHECK_LIB(yaml,yaml_parser_initialize,,LIBYAML="no")
 
-if test "$with_libyaml_includes" != "no"; then
-    CPPFLAGS="${CPPFLAGS} -I${with_libyaml_includes}"
-fi
-
-ac_fn_c_check_header_mongrel "$LINENO" "yaml.h" "ac_cv_header_yaml_h" "$ac_includes_default"
-if test "x$ac_cv_header_yaml_h" = xyes; then :
-
-else
-  LIBYAML="no"
-fi
-
-
-
-if test "$with_libyaml_libraries" != "no"; then
-    LDFLAGS="${LDFLAGS} -L${with_libyaml_libraries}"
-fi
-
-LIBYAML=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for yaml_parser_initialize in -lyaml" >&5
-$as_echo_n "checking for yaml_parser_initialize in -lyaml... " >&6; }
-if ${ac_cv_lib_yaml_yaml_parser_initialize+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lyaml  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char yaml_parser_initialize ();
-int
-main ()
-{
-return yaml_parser_initialize ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_yaml_yaml_parser_initialize=yes
-else
-  ac_cv_lib_yaml_yaml_parser_initialize=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_yaml_yaml_parser_initialize" >&5
-$as_echo "$ac_cv_lib_yaml_yaml_parser_initialize" >&6; }
-if test "x$ac_cv_lib_yaml_yaml_parser_initialize" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBYAML 1
-_ACEOF
-
-  LIBS="-lyaml $LIBS"
-
-else
-  LIBYAML="no"
-fi
-
-
-if test "$LIBYAML" = "no"; then
-    echo
-    echo "   ERROR!  libyaml library not found, go get it"
-    echo "   from http://pyyaml.org/wiki/LibYAML "
-    echo "   or your distribution:"
-    echo
-    echo "   Debian/Ubuntu: apt-get install libyaml-dev"
-    echo "   Fedora: yum install libyaml-devel"
-    echo
-    exit 1
-fi
+#if test "$LIBYAML" = "no"; then
+#    echo
+#    echo "   ERROR!  libyaml library not found, go get it"
+#    echo "   from http://pyyaml.org/wiki/LibYAML "
+#    echo "   or your distribution:"
+#    echo
+#    echo "   Debian/Ubuntu: apt-get install libyaml-dev"
+#    echo "   Fedora: yum install libyaml-devel"
+#    echo
+#    exit 1
+#fi
 
 test "x$prefix" = x. || test "x$prefix" = xNONE && prefix=/usr/local
 
@@ -8483,12 +8430,12 @@ fi
 $as_echo "" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:  .__ __      __                   " >&5
 $as_echo " .__ __      __                   " >&6; }
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result:  |__/  \    /  \_____ _______     " >&5
-$as_echo " |__/  \    /  \_____ _______     " >&6; }
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result:  |  \   \/\/   /\__  \\_  __ \    " >&5
-$as_echo " |  \   \/\/   /\__  \\_  __ \    " >&6; }
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result:  |  |\        /  / __ \|  | \/    " >&5
-$as_echo " |  |\        /  / __ \|  | \/    " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result:  |__/  \    /  \_____ _______     The Intelligent Wardialer" >&5
+$as_echo " |__/  \    /  \_____ _______     The Intelligent Wardialer" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result:  |  \   \/\/   /\__  \\_  __ \     By Da Beave (dabeave@gmail.com / Twitter: @dabeave)" >&5
+$as_echo " |  \   \/\/   /\__  \\_  __ \     By Da Beave (dabeave@gmail.com / Twitter: @dabeave)" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result:  |  |\        /  / __ \|  | \/    Copyright (C) 2005-2019" >&5
+$as_echo " |  |\        /  / __ \|  | \/    Copyright (C) 2005-2019" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:  |__| \__/\  /  (____  /__|       " >&5
 $as_echo " |__| \__/\  /  (____  /__|       " >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:            \/        \/           " >&5

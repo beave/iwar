@@ -3,7 +3,7 @@
 # Seperated by the | is the Description of said system.
 #
 # If you've found a banner that isn't identified here (which is highly 
-# likely!) - Please send me a copy!  Send it to beave@softwink.com so 
+# likely!) - Please send me a copy!  Send it to dabeave@gmail.com so 
 # I can add it to the list!
 
 # Red Hat banners

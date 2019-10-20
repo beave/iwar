@@ -90,7 +90,25 @@ AM_PROG_CC_C_O
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
 
-AC_CHECK_HEADERS([stdio.h stdlib.h sys/types.h unistd.h stdint.h inttypes.h ctype.h errno.h fcntl.h sys/stat.h string.h getopt.h time.h stdarg.h limits.h stdbool.h arpa/inet.h netinet/in.h sys/time.h sys/socket.h sys/mmap.h sys/mman.h sys/prctl.h])
+
+#include <stdio.h>
+#include <signal.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <ctype.h>
+#include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <string.h>
+#include <curses.h>
+#include <sys/types.h>
+#include <limits.h>
+#include <getopt.h>
+#include <stdbool.h>
+#include <inttypes.h>
+
+AC_CHECK_HEADERS([stdio.h signal.h unistd.h fcntl.h ctype.h time.h sys/types.h sys/stat.h stdlib.h string.h curses.h sys/types.h limits.h getopt.h stdbool.h inttypes.h form.h unistd.h string.h])
 
 AC_CHECK_SIZEOF([size_t])
 
@@ -114,50 +132,50 @@ AC_STRUCT_TM
 #AX_EXT
 AM_PROG_AS
 
-AC_CHECK_FUNCS([select strstr strchr strcmp strlen sizeof write snprintf strncat strlcat strlcpy getopt_long gethostbyname socket htons connect send recv dup2 strspn strdup memset access ftruncate strerror mmap shm_open gettimeofday])
+AC_CHECK_FUNCS([select strstr strchr strcmp strlen sizeof write snprintf strncat strlcat strlcpy getopt_long gethostbyname socket htons connect send recv dup2 strspn strdup memset access ftruncate strerror mmap shm_open gettimeofday rand])
 
 # OSX doesn't have librt - this needs to be fixed!
 
 # libyaml
 
-AC_ARG_WITH(libyaml_includes,
-        [  --with-libyaml-includes=DIR  libyaml include directory],
-        [with_libyaml_includes="$withval"],[with_libyaml_includes=no])
-AC_ARG_WITH(libyaml_libraries,
-        [  --with-libyaml-libraries=DIR    libyaml library directory],
-        [with_libyaml_libraries="$withval"],[with_libyaml_libraries="no"])
+#AC_ARG_WITH(libyaml_includes,
+#        [  --with-libyaml-includes=DIR  libyaml include directory],
+#        [with_libyaml_includes="$withval"],[with_libyaml_includes=no])
+#AC_ARG_WITH(libyaml_libraries,
+#        [  --with-libyaml-libraries=DIR    libyaml library directory],
+#        [with_libyaml_libraries="$withval"],[with_libyaml_libraries="no"])
 
-if test "$with_libyaml_includes" != "no"; then
-    CPPFLAGS="${CPPFLAGS} -I${with_libyaml_includes}"
-fi
+#if test "$with_libyaml_includes" != "no"; then
+#    CPPFLAGS="${CPPFLAGS} -I${with_libyaml_includes}"
+#fi
 
-AC_CHECK_HEADER(yaml.h,,LIBYAML="no")
+#AC_CHECK_HEADER(yaml.h,,LIBYAML="no")
 
-if test "$with_libyaml_libraries" != "no"; then
-    LDFLAGS="${LDFLAGS} -L${with_libyaml_libraries}"
-fi
+#if test "$with_libyaml_libraries" != "no"; then
+#    LDFLAGS="${LDFLAGS} -L${with_libyaml_libraries}"
+#fi
 
-LIBYAML=""
-AC_CHECK_LIB(yaml,yaml_parser_initialize,,LIBYAML="no")
+#LIBYAML=""
+#AC_CHECK_LIB(yaml,yaml_parser_initialize,,LIBYAML="no")
 
-if test "$LIBYAML" = "no"; then
-    echo
-    echo "   ERROR!  libyaml library not found, go get it"
-    echo "   from http://pyyaml.org/wiki/LibYAML "
-    echo "   or your distribution:"
-    echo
-    echo "   Debian/Ubuntu: apt-get install libyaml-dev"
-    echo "   Fedora: yum install libyaml-devel"
-    echo
-    exit 1
-fi
+#if test "$LIBYAML" = "no"; then
+#    echo
+#    echo "   ERROR!  libyaml library not found, go get it"
+#    echo "   from http://pyyaml.org/wiki/LibYAML "
+#    echo "   or your distribution:"
+#    echo
+#    echo "   Debian/Ubuntu: apt-get install libyaml-dev"
+#    echo "   Fedora: yum install libyaml-devel"
+#    echo
+#    exit 1
+#fi
 
 test "x$prefix" = x. || test "x$prefix" = xNONE && prefix=/usr/local
 AC_DEFINE_UNQUOTED(CONFIG_FILE_PATH, "`eval echo "${sysconfdir}/iwar.conf"`", [iWar configuration file]) 
 
 AC_DEFINE_UNQUOTED(PACKAGE_NAME, "iWar" )
 AC_DEFINE_UNQUOTED(PACKAGE_STRING, "iWar $VERSION")
-AC_DEFINE_UNQUOTED(PACKAGE_BUGREPORT, "cclark@quadrantsec.com" )
+AC_DEFINE_UNQUOTED(PACKAGE_BUGREPORT, "dabeave@gmail.com" )
 AC_DEFINE_UNQUOTED(PACKAGE_TARNAME, "iwar" )
 AC_DEFINE_UNQUOTED(PACKAGE_VERSION, "$VERSION" )
 
@@ -168,9 +186,9 @@ AC_OUTPUT
 
 AC_MSG_RESULT([])
 AC_MSG_RESULT([ .__ __      __                   ])
-AC_MSG_RESULT([ |__/  \    /  \_____ _______     ])
-AC_MSG_RESULT([ |  \   \/\/   /\__  \\_  __ \    ])
-AC_MSG_RESULT([ |  |\        /  / __ \|  | \/    ])
+AC_MSG_RESULT([ |__/  \    /  \_____ _______     The Intelligent Wardialer])
+AC_MSG_RESULT([ |  \   \/\/   /\__  \\_  __ \     By Da Beave (dabeave@gmail.com / Twitter: @dabeave)])
+AC_MSG_RESULT([ |  |\        /  / __ \|  | \/    Copyright (C) 2005-2019])
 AC_MSG_RESULT([ |__| \__/\  /  (____  /__|       ])
 AC_MSG_RESULT([           \/        \/           ])
 AC_MSG_RESULT([])
