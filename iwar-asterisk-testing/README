@@ -17,7 +17,7 @@ Installation:
 
 1.  Copy all the sound files to the Asterisk sound directory (as root).
 
-# cp *.wav /var/lib/asterisk/sounds/
+# cp *.wav /var/lib/asterisk/sounds/	# Might be /usr/share/asterisk
 
 2.  Copy "iwar-test.agi" to the Asterisk AGI directory.
 
@@ -25,12 +25,11 @@ Installation:
 
 3.  Make sure "iwar-test.agi" is executable. 
 
-# chmod 755 /var/lib//var/lib/asterisk/agi-bin/iwar-test.agi
+# chmod 755 /var/lib/asterisk/agi-bin/iwar-test.agi # Might be /usr/share/asterisk
 
-4.  Add the following line into your /etc/extensions.conf dial plan (or
-    something similar).
+4.  Add the following line into your /etc/extensions.conf dial plan (or something similar).
 
-exten => _919555.,1,agi,iwar-test.agi
+exten => _919555.,1,AGI(iwar-test.agi,1)
 
 5.  Reload Asterisk.
 
@@ -42,5 +41,5 @@ What does this do?
 9195551000,   that AGI will handle the call.   You can now test iWar
 with a range like thus:
 
-# iwar -e 919 -r 5551000-5552000
+# iwar --range 9195551000-9195552000
 
