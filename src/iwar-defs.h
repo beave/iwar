@@ -27,7 +27,7 @@
 #define DEFAULT_PARITY "N"
 #define DEFAULT_DATABITS "8"
 
-#define RANDOM_TIME_END   45
+#define RANDOM_TIME_END   120
 
 #define BANNER_FILE_PATH "/usr/local/etc/iwar-banners.txt"
 #define BLACKLIST_FILE_PATH "/usr/local/etc/iwar-blacklist.txt"
