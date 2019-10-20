@@ -90,26 +90,6 @@ uint64_t userlistnum[9999];
 void Usage(void)
 {
     printf("\niWar [Intelligent Wardialer] Version %s - By Da Beave (dabeave@gmail.com)\n\n",VERSION);
-    printf("--[ Command line arguments ]--\n\n");
-    printf("Usage: iwar [parameters] --range [dial range]\n\n");
-    printf(" --help / -h \t\t:  Prints this screen\n");
-    printf(" --speed / -s \t\t:  Speed/Baud rate [Serial default: 1200]\n");
-    printf(" --parity / -p \t\t:  Parity (None/Even/Odd) [Default (N)one]\n");
-    printf(" --databits / -d \t:  Data bits [Serial default: 8]\n");
-    printf(" --device / -t \t\t:  TTY to use (modem) [Default /dev/ttyUSB0]\n");
-    printf(" --software / -c\t:  Use software handshaking (XON/XOFF) [Default is hardware flow control]\n");
-    printf(" --log / -f \t\t:  Output log file [Default: iwar.log]\n");
-    printf(" --predial / -e \t:  Pre-dial string/NPA to scan [Optional]\n");
-    printf(" --postdial / -g \t:  Post-dial string [Optional]\n");
-    printf(" --tonedetect / -a \t:  Tone Location (Toneloc W; method) [Default: disabled]\n");
-    printf(" --range  / -r \t\t:  Range to scan (ie - 19045551212-19045551313)\n");
-    printf(" --sequential / -x \t:  Sequential dialing [Default: Random]\n");
-    printf(" --full-logging /-F \t:  Full logging (BUSY, NO CARRIER, Timeouts, Skipped, etc)\n");
-    printf(" --disable-banner / -b \t:  Disable banners check [Default: enabled]\n");
-    printf(" --disable-record / -o \t:  Disable recording banner data [Dfault: enabled].\n");
-    printf(" --load / -L \t\t:  Load numbers to dial from file.\n");
-    printf(" --load-state / -l \t:  Load 'saved state' file (previously dialed numbers)\n");
-    printf("\n");
     printf("--[ Key assigment in iWar ]--\n\n");
     printf(" 'a' or 'ESC'\t\t: Abort wardialing and quit.\n");
     printf(" 'b'\t\t\t: Enable terminal 'beep' on carrier discovery.\n");
@@ -130,30 +110,41 @@ void Usage(void)
     printf(" 'v'\t\t\t: Mark number as voicemail.\n");
     printf(" '['\t\t\t: Mark number as 'interesting' and pause the scan.\n");
     printf(" 'l'\t\t\t: Mark number with a customer/user input note.\n");
+    printf("\n");
+    printf("--[ iWar Color coding ]--\n\n");
+    printf(" WHITE / A_NORMAL\t: NO CARRIER\n");
+    printf(" YELLOW / A_BOLD\t: BUSY\n");
+    printf(" GREEN / A_BLINK\t: CONNECT\n");
+    printf(" BLUE / A_UNDERLINE\t: VOICE\n");
+    printf(" WHITE / A_DIM\t\t: NO ANSWER\n");
+    printf(" MAGENTA / A_NORMAL\t: Already scanned (loaded from file).\n");
+    printf(" CYAN / A_REVERSE\t: Blacklisted phone number.\n");
+    printf(" RED / A_NORMAL\t\t: Number skipped by user via spacebar.\n");
+    printf(" GREEN / A_STANDOUT\t: Manually marked.\n");
+    printf(" BLUE / A_STANDOUT\t: Possible 'interesting' number (via Toneloc W;).\n");
+    printf("\n");
+    printf("--[ Command line arguments ]--\n\n");
+    printf("Usage: iwar [parameters] --range [dial range]\n\n");
+    printf(" --help / -h \t\t:  Prints this screen\n");
+    printf(" --speed / -s \t\t:  Speed/Baud rate [Serial default: 1200]\n");
+    printf(" --parity / -p \t\t:  Parity (None/Even/Odd) [Default (N)one]\n");
+    printf(" --databits / -d \t:  Data bits [Serial default: 8]\n");
+    printf(" --device / -t \t\t:  TTY to use (modem) [Default /dev/ttyUSB0]\n");
+    printf(" --software / -c\t:  Use software handshaking (XON/XOFF) [Default is hardware flow control]\n");
+    printf(" --log / -f \t\t:  Output log file [Default: iwar.log]\n");
+    printf(" --predial / -e \t:  Pre-dial string/NPA to scan [Optional]\n");
+    printf(" --postdial / -g \t:  Post-dial string [Optional]\n");
+    printf(" --tonedetect / -a \t:  Tone Location (Toneloc W; method) [Default: disabled]\n");
+    printf(" --range  / -r \t\t:  Range to scan (ie - 19045551212-19045551313)\n");
+    printf(" --sequential / -x \t:  Sequential dialing [Default: Random]\n");
+    printf(" --full-logging /-F \t:  Full logging (BUSY, NO CARRIER, Timeouts, Skipped, etc)\n");
+    printf(" --disable-banner / -b \t:  Disable banners check [Default: enabled]\n");
+    printf(" --disable-record / -o \t:  Disable recording banner data [Dfault: enabled].\n");
+    printf(" --load / -L \t\t:  Load numbers to dial from file.\n");
+    printf(" --load-state / -l \t:  Load 'saved state' file (previously dialed numbers)\n");
     printf("\niWar [Intelligent Wardialer] Version %s - By Da Beave (dabeave@gmail.com)\n\n",VERSION);
-
-
-/*
-        (space) = skip number
-        escape = Abort scan
-        b = Enable "beep" on detection
-        m = Mark as "interesting"
-        c = Mark as "carrier"
-        f = Mark as "fax"
-        t = Mark as "tone"
-        v = Mark as "voice mail"
-        x = Mark as PBX
-        k = Mark with "custom" comment
-        0 = Modem speaker off
-        1-3 = Modem speaker volume
-        + = Add 5 seconds to timeout timer
-        - = Subtract 5 seconds from timeout timer
-        s = Save dial state (where you are in dailing)
-        q = Quit and save state (?)
-        p = Pause
-        [ = Pause and mark interesting
-
-*/
+    printf("\n");
+ 
 
 };
 
