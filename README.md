@@ -8,9 +8,7 @@
 
 </pre>
 
-
 ![iWar Screenshot](https://github.com/beave/iwar/raw/master/screenshots/iwar-2.png)
-
 
 __iWar - The unix 'Intelligent' war dialer.__
 
