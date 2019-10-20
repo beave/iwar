@@ -8,10 +8,15 @@
 
 </pre>
 
-__iWar - The unix 'Intelligent' war dialer.__
 
 ![iWar Screenshot](https://github.com/beave/iwar/raw/master/screenshots/iwar-2.png)
 
+
+__iWar - The unix 'Intelligent' war dialer.__
+
+iWar is a [wardialing tool](https://en.wikipedia.org/wiki/Wardialing) security tool used
+to audit the PSTN (PSTN (public switched telephone network).  This version of iWar uses a
+computers serial port and modem to "scan" phone numbers.
 
 
 
