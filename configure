@@ -6944,7 +6944,7 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 cat >>confdefs.h <<_ACEOF
-#define PACKAGE_BUGREPORT "cclark@quadrantsec.com"
+#define PACKAGE_BUGREPORT "dabeave@gmail.com"
 _ACEOF
 
 cat >>confdefs.h <<_ACEOF

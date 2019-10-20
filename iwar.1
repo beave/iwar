@@ -1,0 +1,321 @@
+.TH IWAR 1 "" "" "Unix Intelligent Wardialer"
+.SH NAME
+iwar \- Intelligent Wardialer
+.SH SYNOPSIS
+.B iwar
+[ \fB-\fPoptions ] \fB--range\fP [ dial\fB-\fPrange ]
+.SH "DESCRIPTION"
+\fBiWar\fR is a unix wardialer program, "war dialing" or "wardialing" 
+is a method of automatically dialing a range of numbers randomly or 
+sequentially and recording things that might be interesting, from 
+traditional carrier detection to telco related equipment.
+.P
+The name for this technique refers to the 1983 film WarGames. In the 
+film, the protagonist "David Lightman" programs his computer to dial 
+every telephone number in Sunnyvale, CA in order to find other computer 
+systems. Although the technique predates the film, the name "war dialing" 
+rapidly became popular within computing culture, replacing the original 
+name of "demon dialing".
+.P
+\fBiWar\fR is a phone network security auditing tool and should only be 
+used for _legal_ purposes. If you do not have permission to scan a block 
+of numbers,  then don't use this tool!
+.SH OPTIONS
+.TP
+.B \-a --tonedetect
+tone location (Toneloc W; method)
+.br
+.ti 14
+[Serial default: disabled]
+.TP
+.B \-b --disable-banner
+disable banners check
+.br
+.ti 14
+[Serial default: enabled]
+.TP
+.B \-c --xonxoff
+use software handshaking (XON/XOFF)
+.br
+.ti 14
+[Serial default is hardware flow control]
+.TP
+.B \-C --config
+configuration file to use
+.br
+.ti 14
+[Default: iwar.conf]
+.TP
+.B \-d --databits
+data bits
+.br
+.ti 14
+[Serial default: 8]
+.TP
+.B \-e --predial
+pre-dial string/NPA to scan
+.br
+.ti 14
+[Optional]
+.TP
+.B \-f --log
+output log file
+.br
+.ti 14
+[Default: iwar.log]
+.TP
+.B \-F --full-logging
+full logging (BUSY, NO CARRIER, Timeouts, Skipped, etc)
+.TP
+.B \-g --postdial
+post-dial string
+.br
+.ti 14
+[Optional]
+.TP
+.B \-h --help
+display help
+.TP
+.B \-l --load-state
+load 'saved state' file (previosly dialed numbers)
+.TP
+.B \-L --loadfile
+load numbers to dial from file
+.TP
+.B \-o --disable-record
+disable recording banner data
+.br
+.ti 14
+[Serial default: enabled]
+.TP
+.B \-p --parity
+parity (None/Even/Odd)
+.br
+.ti 14
+[Serial default 'N'one]
+.TP
+.B \-r --range
+range to scan (ie: 5551212-5551313)
+.TP
+.B \-R --random-time
+random time between dialing
+.TP
+.B \-s --speed
+speed/baud rate
+.br
+.ti 14
+[Serial default: 1200]
+.TP
+.B \-S --stopbit
+stop bits
+.br
+.ti 14
+[Serial default: 1]
+.TP
+.B \-t --device
+tty to use (modem)
+.br
+.ti 14
+[Serial default /dev/ttyUSB0]
+.TP
+.B \-x --sequential
+sequential dialing
+.br
+.ti 14
+[Default: random]
+.SH KEYS
+.TP
+.B a or ESC
+Abort (Don't save,  just quit)
+.TP
+.B b
+Beep disabled/enabled.   If enabled,  iWar will beep
+when a carrier or tone has been located.
+.TP
+.B q
+Save state to a file and quit.
+.TP
+.B ctrl-c
+Send signal 2 (abort/exit,  no matter what!)
+.TP
+.B s
+Save state, don't quit (keep dialing)
+.TP
+.B p
+Pause (Serial mode: Hangup then pause)
+.TP
+.B [
+Pause and mark as interesting.
+.TP
+.B +
+Add 5 seconds from serial timer.
+.TP
+.B -
+Subtract 5 seconds from serial timer.
+.TP
+.B space
+Skip current number.
+.P
+Serial mode only:  Volume is set after the current number is processed.
+.TP
+.B 0
+Modem volume off
+.TP
+.B 1
+Modem volume (low)
+.TP
+.B 2
+Modem volume (medium)
+.TP
+.B 3
+Modem volume (high)
+.TP
+.B m
+Mark (Quick)  [Mark number as interesting, no comments]
+.TP
+.B c
+Mark (CARRIER)
+.TP
+.B f
+Mark (FAX)
+.TP
+.B t
+Mark (TELCO/TONE)
+.TP
+.B v
+Mark (VOICE MAIL SYSTEM)
+.TP
+.B x
+Mark (PBX)
+.TP
+.B k
+Mark [Allows you to enter a custom not about the number]
+.SH "COLOR CODES"
+.P
+In the event that you're terminal doesnt support color,  we use terminal attributes 
+to distinguish between results.
+.P
+\fBWHITE   / A_NORMAL\fR             NO CARRIER
+.br
+\fBYELLOW  / A_BOLD\fR               BUSY
+.br
+\fBGREEN   / A_BLINK\fR              CONNECT
+.br
+\fBBLUE    / A_UNDERLINE\fR          VOICE
+.br
+\fBWHITE   / A_DIM\fR                NO ANSWER
+.br
+\fBMAGENTA / A_NORMAL\fR             Already scanned (loaded from file)
+.br
+\fBCYAN    / A_REVERSE\fR            Blacklisted number.
+.br
+\fBRED     / A_NORMAL\fR             Number skipped by user (spacebar).
+.br
+\fBGREEN   / A_STANDOUT\fR           Manually marked.
+.br
+\fBBLUE    / A_STANDOUT\fR           Possible interesting number (received silence)
+.br
+\fBCYAN    / A_UNDERLINE\fR          Paused and Marked
+.SH EXAMPLES
+.LP
+Please look over some examples of iWar usage before getting started. 
+This will give you a idea of how iWar works. 
+.RS
+.LP
+Simple 1200 to 1300 range.  This will dial numbers 1200-1300 in a default
+random fashion.
+.RS
+.nf
+\fB# iwar --range 1200-1300\fP
+.fi
+.RE
+.LP
+Same as above,  but we specify a output file and tell iWar to do sequential
+dial instead of the default random fashion.
+.RS
+.nf
+\fB# iwar --range 1200-1300 -x --logfile 1000.log\fP
+.fi
+.RE
+.LP
+More realistic type of scan.  This will scan the 850 NPA (Florida) in the
+NXX (555) with a range of 1000-1100.  Basically,  iWar will dial every
+number between (850)555-1000 to (850)555-1100.  iWar will use the device
+(modem) on /dev/ttyS0.  The speed will be set to 9600 baud (defaults to
+8N1)
+.RS
+.nf
+\fB# iwar --range 18505551000-18505551100 --device /dev/ttyS5 --speed 9600\fP
+.fi
+.RE
+.LP
+Same as the above example,  but dial "9w" first.  The "w" tells the modem 
+to "wait" for another dial tone.  
+.RS
+.nf
+\fB# iwar --predial 9w --range 18501200-18505551300 --device /dev/ttyS5 --speed 9600\fP
+.fi
+.RE
+.LP
+This example uses the , to cause a modem delay (default is 2 seconds).  In 
+this example,  we'll dial a certain number (5551000) and wait 10 seconds.  
+After 6 seconds,  we'll send a number within our range.  The idea here is
+for targetting PIN protected system.
+.RS
+.nf
+\fB# iwar --predial 5551000,,,,, --range 00000-1000\fP
+.fi
+.RE
+.LP
+Another attack scenario involving the pre-dial and post-dial strings.  
+Lets assume there is a PBX that has pin protection to dial out. 
+In this case,  we'll dial the PBX number (using the pre-dial string -
+18505551234w) wait for a dial tone,  then send a random PIN
+(--range 0000-9999).  iWar will then wait for a yet another dial tone,  and 
+attempt to call a number that we know will answer with a carrier (the post dial
+-g w19045552345).  The -m will log to a MySQL database,  and the -F will 
+record _all_ events (BUSY, VOICE, whatever).
+.RS
+.nf
+\fB# iwar --predial 18505551234w --range 0000-9999 --postdial w19045552345 -m -F\fP
+.fi
+.RE
+.LP
+If you save the state of a wardial to a file, you can reload it like this.
+This will load in the dial type (random/sequential),   numbers already 
+dialed.  This will _not_ load predial/postdial information.  This is 
+useful to stop and scan and restart it where you left off.
+.RS
+.nf
+\fB# iwar --statefile mystatefile.dat\fP
+.fi
+.RE
+.LP
+Load phone numbers from a pre-generated file. The numbers in this file must
+be in a column one after another. This loads a list of numbers that 
+iWar _will_ dial.  Pretty handy feature.
+.RS
+.nf
+\fB# iwar --loadfile pregeneratednumbers.txt\fP
+.fi
+.SH BUGS
+Efforts have been made to have iWar "do the right thing" in all its
+various modes.  If you believe that it is doing the wrong thing under
+whatever circumstances, please notify me and tell me how you think it
+should behave.  If iWar is not able to do some task you think up,
+minor tweaks to the code will probably fix that. I certainly encourage 
+people to make custom mods and send in any improvements they make to it. 
+.SH FILES
+\fBiwar.conf\fR				iWar initialization commands
+.br
+\fBiwar-blacklist.txt\fR		Numbers that should never be dialed
+.br
+\fBbanners.txt\fR			List of banners used to identify systems
+.SH "SEE ALSO"
+The iWar README.md & iWar website: https://github.com/beave/iwar
+.SH AUTHOR
+\fBiWar\fR was written by Champ Clark III aka Da Beave <dabeave@gmail.com>
+.p
+This manual page was written by Ignacio Arque-Latour & Champ Clark III (@dabeave666).
+.SH VERSION
+This is iwar-1.0 version.

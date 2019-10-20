@@ -143,7 +143,7 @@ void Usage(void)
     printf(" --parity / -p \t\t:  Parity (None/Even/Odd) [Default (N)one]\n");
     printf(" --databits / -d \t:  Data bits [Serial default: 8]\n");
     printf(" --device / -t \t\t:  TTY to use (modem) [Default /dev/ttyUSB0]\n");
-    printf(" --software / -c\t:  Use software handshaking (XON/XOFF) [Default is hardware flow control]\n");
+    printf(" --xonxoff / -c\t:  Use software handshaking (XON/XOFF) [Default is hardware flow control]\n");
     printf(" --log / -f \t\t:  Output log file [Default: iwar.log]\n");
     printf(" --predial / -e \t:  Pre-dial string/NPA to scan [Optional]\n");
     printf(" --postdial / -g \t:  Post-dial string [Optional]\n");
@@ -155,6 +155,7 @@ void Usage(void)
     printf(" --disable-record / -o \t:  Disable recording banner data [Dfault: enabled].\n");
     printf(" --load / -L \t\t:  Load numbers to dial from file.\n");
     printf(" --load-state / -l \t:  Load 'saved state' file (previously dialed numbers)\n");
+    printf(" --config / -C \t\t:  Load iwar configuration file.\n");
     printf("\niWar [Intelligent Wardialer] Version %s - By Da Beave (dabeave@gmail.com)\n\n",VERSION);
     printf("\n");
 
@@ -1087,6 +1088,7 @@ int main(int argc,  char **argv)
     const struct option long_options[] =
     {
         { "help",         no_argument,          NULL,   'h' },
+	{ "config",       required_argument,    NULL,   'C' },
         { "speed",        required_argument,    NULL,   's' },
         { "parity",       required_argument,    NULL,   'p' },
         { "databits",     required_argument,    NULL,   'd' },

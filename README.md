@@ -44,7 +44,7 @@ Usage: iwar [parameters] --range [dial range]
  --parity / -p 		:  Parity (None/Even/Odd) [Default (N)one]
  --databits / -d 	:  Data bits [Serial default: 8]
  --device / -t 		:  TTY to use (modem) [Default /dev/ttyUSB0]
- --software / -c	:  Use software handshaking (XON/XOFF) [Default is hardware flow control]
+ --xonxoff / -c		:  Use software handshaking (XON/XOFF) [Default is hardware flow control]
  --log / -f 		:  Output log file [Default: iwar.log]
  --predial / -e 	:  Pre-dial string/NPA to scan [Optional]
  --postdial / -g 	:  Post-dial string [Optional]
@@ -56,6 +56,7 @@ Usage: iwar [parameters] --range [dial range]
  --disable-record / -o 	:  Disable recording banner data [Dfault: enabled].
  --load / -L 		:  Load numbers to dial from file.
  --load-state / -l 	:  Load 'saved state' file (previously dialed numbers)
+ --config / -C          :  Load iwar configuration file.
 
 </pre>
 

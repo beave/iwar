@@ -11,6 +11,8 @@ install-data-local:
 	$(INSTALL) -m 755 etc/iwar.conf "$(DESTDIR)$(sysconfdir)/iwar.conf"
 	$(INSTALL) -m 755 etc/iwar-blacklist.txt "$(DESTDIR)$(sysconfdir)/iwar-blacklist.txt"
 	$(INSTALL) -m 755 etc/iwar-banners.txt "$(DESTDIR)$(sysconfdir)/iwar-banners.txt"
+	mkdir -p $(DESTDIR)$(mandir)/man1/
+	$(INSTALL) -m 644 iwar.1 $(DESTDIR)$(mandir)/man1/
 
 	@echo ""
 	@echo "------------------------------------------------------------------------------"
