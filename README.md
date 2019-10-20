@@ -14,9 +14,15 @@
 
 __iWar - The unix 'Intelligent' war dialer.__
 
-iWar is a [wardialing tool](https://en.wikipedia.org/wiki/Wardialing) security tool used
-to audit the PSTN (PSTN (public switched telephone network).  This version of iWar uses a
+iWar is a Linux/Unix [wardialing tool](https://en.wikipedia.org/wiki/Wardialing) security tool 
+used to audit the PSTN (public switched telephone network).  This version of iWar uses a
 computers serial port and modem to "scan" phone numbers.
+
+_Features_
+
+	- Feature one
+	- feature two
+
 
 
 
