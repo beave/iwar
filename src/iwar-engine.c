@@ -322,11 +322,11 @@ int GetNumber(bool dialtype, bool tonedetect, const char *predial, const char *p
 
             if ( tonedetect == true )
                 {
-                    snprintf(sendstring, sizeof(sendstring), "ATDT%s%lld%sW;\r", predial, dialnum, postdial);
+                    snprintf(sendstring, sizeof(sendstring), "ATDT%s%" PRIu64 "%sW;\r", predial, dialnum, postdial);
                 }
             else
                 {
-                    snprintf(sendstring, sizeof(sendstring), "ATDT%s%lld%s\r", predial, dialnum, postdial);
+                    snprintf(sendstring, sizeof(sendstring), "ATDT%s%" PRIu64 "%s\r", predial, dialnum, postdial);
                 }
 
 
@@ -414,11 +414,11 @@ int GetNumber(bool dialtype, bool tonedetect, const char *predial, const char *p
                     /* Can't do old school tone location with a post dial string,
                        so we ignore it.  */
 
-                    snprintf(sendstring, sizeof(sendstring), "ATDT%s%lldW;\r", predial, ss); /* Tone */
+                    snprintf(sendstring, sizeof(sendstring), "ATDT%s%" PRIu64 "W;\r", predial, ss); /* Tone */
                 }
             else
                 {
-                    snprintf(sendstring, sizeof(sendstring), "ATDT%s%lld%s\r", predial, ss, postdial);
+                    snprintf(sendstring, sizeof(sendstring), "ATDT%s%" PRIu64 "%s\r", predial, ss, postdial);
                 }
 
             savestate_number[j]=ss;
@@ -508,11 +508,11 @@ int GetNumber(bool dialtype, bool tonedetect, const char *predial, const char *p
 
                             if (tonedetect == true )              /* Tone location */
                                 {
-                                    snprintf(sendstring, sizeof(sendstring), "ATDT%s%lldW;\r", predial, dialnum);
+                                    snprintf(sendstring, sizeof(sendstring), "ATDT%s%" PRIu64 "W;\r", predial, dialnum);
                                 }
                             else
                                 {
-                                    snprintf(sendstring, sizeof(sendstring), "ATDT%s%lld%s\r", predial, dialnum, postdial);
+                                    snprintf(sendstring, sizeof(sendstring), "ATDT%s%" PRIu64 "%s\r", predial, dialnum, postdial);
                                 }
 
 
@@ -549,7 +549,7 @@ void RowColCheck( void )
     getmaxyx(stdscr,maxrow,maxcol);  /* Current screen attributes */
     row++;
 
-    snprintf(tmp, sizeof(tmp), "%lld", dialnum);
+    snprintf(tmp, sizeof(tmp), "%" PRIu64 "", dialnum);
 
     if ( row > maxrow-10)
         {
@@ -643,17 +643,17 @@ void LogInfo(const char *response, const char *ident, const char *recordbuf )
         {
             if (strlen(ident) == 0)
                 {
-                    fprintf(outfd, "%s %lld %s %s\n", tmp2, dialnum, response, recordbuf);
+                    fprintf(outfd, "%s %" PRIu64 " %s %s\n", tmp2, dialnum, response, recordbuf);
                 }
             else
                 {
                     if (strlen(recordbuf) != 0 )
                         {
-                            fprintf(outfd, "%s %lld  %s [ %s ] \n------------------------------------------------------------------------------\n%s\n------------------------------------------------------------------------------\n", tmp2, dialnum, response, ident, recordbuf);
+                            fprintf(outfd, "%s %" PRIu64 " %s [ %s ] \n------------------------------------------------------------------------------\n%s\n------------------------------------------------------------------------------\n", tmp2, dialnum, response, ident, recordbuf);
                         }
                     else
                         {
-                            fprintf(outfd, "%s %lld  %s [ %s ] \n", tmp2, dialnum, response, ident);
+                            fprintf(outfd, "%s %" PRIu64 " %s [ %s ] \n", tmp2, dialnum, response, ident);
                         }
 
                 }
@@ -784,12 +784,12 @@ void DrawInfo( const char *baudrate,
     if ( numbersfile[0] != '\0' )
         {
             move(2,20);
-            printw("%lld - %lld [%d]", userlist[0].number, userlist[userlistcount-1].number, userlistcount);
+            printw("%" PRIu64 " - %" PRIu64 " [%d]", userlist[0].number, userlist[userlistcount-1].number, userlistcount);
         }
     else
         {
             move(2,20);
-            printw("%lld - %lld [%d]", ss, es, es-ss);
+            printw("%" PRIu64 " - %" PRIu64 " [%d]", ss, es, es-ss);
         }
 
     if ( predial[0] == '\0' )
@@ -969,12 +969,12 @@ int main(int argc,  char **argv)
 
     bool rtime=false;
 
-    char tmpscanrange[31] = { 0 };
-    char startscan[20] = { 0 };
-    char endscan[20] = { 0 };
+    char tmpscanrange[128] = { 0 };
+    char startscan[64] = { 0 };
+    char endscan[64] = { 0 };
 
-    char buf[128] = { 0 };
-    char buf2[123] = { 0 };
+    char buf[256] = { 0 };
+    char buf2[256] = { 0 };
 
     fd_set fds;
     struct timeval tv;
@@ -1537,7 +1537,6 @@ int main(int argc,  char **argv)
                     memset(&userlist[userlistcount], 0, sizeof(struct _userlist));
 
                     userlist[userlistcount].number = atoll(buf2);
-                    //userlistnum[userlistcount] = atoll(buf2);
                     userlistcount++;
                 }
 
@@ -1566,19 +1565,7 @@ int main(int argc,  char **argv)
                 {
                     if (buf2[0] == '#') continue;
                     if (buf2[0] == 10 ) continue;
-                    /*
-                                        savestate = (_savestate *) realloc(savestate, (savestatecount+1) * sizeof(_savestate));
 
-                                        if ( savestate == NULL )
-                                            {
-                                                fprintf(stderr, "ERROR - Failed to reallocate memory for _savestate. Abort!", __FILE__, __LINE__);
-                                                exit(1);
-                                            }
-
-                                        memset(&savestate[savestatecount], 0, sizeof(struct _savestate));
-
-                                        savestate[savestatecount].number = atoll(buf2);
-                    		    */
                     savestate_number[savestatecount] = atoll(buf2);
                     savestatecount++;
                 }
@@ -1597,8 +1584,8 @@ int main(int argc,  char **argv)
 
             /* In case they save state again */
 
-            snprintf(startscan, sizeof(startscan), "%lld", ss);
-            snprintf(endscan, sizeof(endscan), "%lld", es);
+            snprintf(startscan, sizeof(startscan), "%" PRIu64 "", ss);
+            snprintf(endscan, sizeof(endscan), "%" PRIu64 "", es);
 
             if ( ss == 0 || es == 0)
                 {
@@ -1657,11 +1644,11 @@ int main(int argc,  char **argv)
 
     if ( numbersfile[0] != '\0' )
         {
-            fprintf(outfd, "= Start of scan: %lld | End of scan: %lld (Total Numbers: %d)\n", userlist[0].number, userlist[userlistcount-1].number, userlistcount);
+            fprintf(outfd, "= Start of scan: %" PRIu64 " | End of scan: %" PRIu64 " (Total Numbers: %d)\n", userlist[0].number, userlist[userlistcount-1].number, userlistcount);
         }
     else
         {
-            fprintf(outfd, "= Start of scan: %lld | End of scan: %lld (Total Numbers: %lld)\n", ss,es,es-ss);
+            fprintf(outfd, "= Start of scan: %" PRIu64 " | End of scan: %" PRIu64 " (Total Numbers: %" PRIu64 ")\n", ss,es,es-ss);
         }
 
     if ( predial[0] == '\0' )
@@ -1883,7 +1870,7 @@ int main(int argc,  char **argv)
                                     wrefresh(modemstatus);
 
                                     /* we resend the same number we attempted */
-                                    snprintf(tmp, sizeof(tmp), "Redialing: %lld", dialnum);
+                                    snprintf(tmp, sizeof(tmp), "Redialing: %" PRIu64 "", dialnum);
                                     NCURSES_Status(tmp);
                                     RSleep(redial,rtime);
                                     NCURSES_Status(sendstring);
@@ -2654,7 +2641,7 @@ int main(int argc,  char **argv)
 
                                     for (b=i; b<j; b++)
                                         {
-                                            fprintf(saveloadstate, "%lld\n", savestate_number[b]);
+                                            fprintf(saveloadstate, "%" PRIu64 "\n", savestate_number[b]);
                                         }
 
                                     fclose(saveloadstate);
@@ -2719,7 +2706,7 @@ int main(int argc,  char **argv)
 
                                     for (b=i; b<j; b++)
                                         {
-                                            fprintf(saveloadstate, "%lld\n", savestate_number[b]);
+                                            fprintf(saveloadstate, "%" PRIu64 "\n", savestate_number[b]);
                                         }
 
                                     fclose(saveloadstate);
