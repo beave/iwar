@@ -529,7 +529,7 @@ void NCURSES_Intro()
     strncpy(msg, "Written By Da Beave", sizeof(msg));
     mvwprintw(info, 6, (50-strlen(msg)) / 2, "%s", msg);
     wattrset(info, COLOR_PAIR(5));
-    strncpy(msg, "Released XXX. XXth 2019", sizeof(msg));
+    strncpy(msg, "Released Oct. 28th 2019", sizeof(msg));
     mvwprintw(info, 8, (50-strlen(msg)) / 2, "%s", msg);
     strncpy(msg, "Contact Information:", sizeof(msg));
     mvwprintw(info, 10, (50-strlen(msg)) / 2, "%s", msg);
