@@ -1113,12 +1113,12 @@ int main(int argc,  char **argv)
                     beepflag=true;
                 }
 
-            if (!strcmp(iwar_option, "PlusHangup"))
+            if (!strcmp(iwar_option, "plushangup"))
                 {
                     plushang=true;
                 }
 
-            if (!strcmp(iwar_option, "PlusHangupsleep"))
+            if (!strcmp(iwar_option, "plushangupsleep"))
                 {
                     strlcpy(tmp, iwar_value, sizeof(tmp));
                     PlusHangupsleep=atoi(tmp);
